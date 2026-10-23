@@ -102,13 +102,17 @@ export default function HomeScreen({ navigation }) {
       }
 
       if (user?.role === "patient") {
-        const appts = await appointmentsApi.myAppointments();
-        if (Array.isArray(appts)) {
-          setAppointments(appts);
+        try {
+          const appts = await appointmentsApi.myAppointments();
+          if (Array.isArray(appts)) {
+            setAppointments(appts);
+          }
+        } catch (e) {
+          console.log("Failed to load appointments", e?.message);
         }
       }
     } catch (err) {
-      console.log("Failed to load home screen data", err);
+      console.log("Failed to load home screen data", err?.message);
     }
   }, [user?.role]);
 

@@ -128,6 +128,46 @@ export default function AuthScreen({ navigation }) {
                 <Text style={styles.signUpLink}> Create Account</Text>
               </Pressable>
             </View>
+
+            {/* Quick Demo Fill Buttons */}
+            <View style={{ flexDirection: "row", justifyContent: "center", gap: 10, marginTop: 14 }}>
+              <Pressable
+                onPress={() => {
+                  setPhone("03001234567");
+                  setPassword("123456");
+                }}
+                style={{
+                  backgroundColor: "rgba(14, 165, 233, 0.12)",
+                  borderWidth: 1,
+                  borderColor: "rgba(14, 165, 233, 0.3)",
+                  borderRadius: 8,
+                  paddingVertical: 6,
+                  paddingHorizontal: 10,
+                }}
+              >
+                <Text style={{ fontSize: 11, fontWeight: "700", color: colors.secondary }}>
+                  Fill Demo Patient
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  setPhone("03001112233");
+                  setPassword("123456");
+                }}
+                style={{
+                  backgroundColor: "rgba(16, 185, 129, 0.12)",
+                  borderWidth: 1,
+                  borderColor: "rgba(16, 185, 129, 0.3)",
+                  borderRadius: 8,
+                  paddingVertical: 6,
+                  paddingHorizontal: 10,
+                }}
+              >
+                <Text style={{ fontSize: 11, fontWeight: "700", color: "#10b981" }}>
+                  Fill Demo Doctor
+                </Text>
+              </Pressable>
+            </View>
           </View>
         </KeyboardAvoidingView>
       </View>

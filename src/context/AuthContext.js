@@ -1,5 +1,5 @@
-import React, { createContext, useEffect, useMemo, useState } from "react";
-import { api } from "../services/api/api";
+import React, { createContext, useEffect, useMemo, useState, useCallback } from "react";
+import { api, setUnauthorizedHandler } from "../services/api/api";
 import { saveSession, getToken, clearSession, getStoredUser } from "../services/storage";
 
 export const AuthContext = createContext(null);
@@ -18,6 +18,21 @@ export function AuthProvider({ children }) {
     };
   };
 
+  const logout = useCallback(async () => {
+    await clearSession().catch(() => {});
+    setUser(null);
+  }, []);
+
+  // Listen for unauthorized 401 events anywhere in the app to immediately transition to Auth
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      setUser(null);
+    });
+    return () => {
+      setUnauthorizedHandler(null);
+    };
+  }, []);
+
   useEffect(() => {
     let unmounted = false;
     (async () => {
@@ -27,12 +42,8 @@ export function AuthProvider({ children }) {
           getStoredUser().catch(() => null),
         ]);
 
-        if (storedUser && !unmounted) {
-          setUser(normalizeUser(storedUser));
-        }
-
         if (!token) {
-          if (!unmounted && !storedUser) setUser(null);
+          if (!unmounted) setUser(null);
           return;
         }
 
@@ -48,10 +59,23 @@ export function AuthProvider({ children }) {
             await saveSession(token, normalized);
             setUser(normalized);
           }
-        } catch {
-          // If network fails or times out, keep storedUser if available
-          if (!storedUser && !unmounted) {
-            setUser(null);
+        } catch (err) {
+          const msg = String(err?.message || "").toLowerCase();
+          if (
+            msg.includes("invalid token") ||
+            msg.includes("token expired") ||
+            msg.includes("unauthorized") ||
+            msg.includes("user not found")
+          ) {
+            await clearSession().catch(() => {});
+            if (!unmounted) setUser(null);
+          } else {
+            // Keep stored offline user only if server was unreachable/timed out
+            if (storedUser && !unmounted) {
+              setUser(normalizeUser(storedUser));
+            } else if (!unmounted) {
+              setUser(null);
+            }
           }
         }
       } catch {
@@ -101,14 +125,9 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const logout = async () => {
-    await clearSession();
-    setUser(null);
-  };
-
   const value = useMemo(
     () => ({ user, booting, login, signup, logout }),
-    [user, booting]
+    [user, booting, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

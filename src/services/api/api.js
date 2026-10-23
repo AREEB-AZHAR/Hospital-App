@@ -1,5 +1,11 @@
 import { NativeModules, Platform } from "react-native";
-import { getToken } from "../storage";
+import { getToken, getRefreshToken, saveToken, clearSession } from "../storage";
+
+let onUnauthorizedCallback = null;
+
+export function setUnauthorizedHandler(callback) {
+  onUnauthorizedCallback = callback;
+}
 
 const CURRENT_IP = "192.168.1.6";
 
@@ -26,7 +32,7 @@ export function getBaseUrl() {
 
 export const BASE_URL = getBaseUrl();
 
-async function request(url, options = {}) {
+async function request(url, options = {}, isRetry = false) {
   const token = await getToken();
   const baseUrl = getBaseUrl();
 
@@ -59,6 +65,43 @@ async function request(url, options = {}) {
   }
 
   if (!res.ok) {
+    // 401 Unauthorized handling
+    if (res.status === 401) {
+      // If we haven't already retried and this isn't an auth endpoint, attempt token refresh
+      if (!isRetry && !url.startsWith("/auth/")) {
+        try {
+          const refreshToken = await getRefreshToken();
+          if (refreshToken) {
+            const refreshRes = await fetch(`${baseUrl}/auth/refresh`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ refreshToken }),
+            });
+            if (refreshRes.ok) {
+              const refreshData = await refreshRes.json();
+              if (refreshData?.token) {
+                await saveToken(refreshData.token);
+                // Retry with new token
+                return request(url, options, true);
+              }
+            }
+          }
+        } catch {
+          // Refresh failed
+        }
+      }
+
+      // If refresh failed or was not possible, clear session and notify AuthContext
+      try {
+        await clearSession();
+      } catch {
+        // ignore
+      }
+      if (typeof onUnauthorizedCallback === "function") {
+        onUnauthorizedCallback();
+      }
+    }
+
     throw new Error(data.message || "API error");
   }
 
