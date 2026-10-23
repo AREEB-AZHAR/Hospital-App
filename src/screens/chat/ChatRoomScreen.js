@@ -18,6 +18,7 @@ import { useHeaderHeight } from "@react-navigation/elements";
 import { Audio } from "expo-av";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
+import { chatApi } from "../../services/api";
 
 
 
@@ -130,7 +131,7 @@ export default function ChatRoomScreen({ route }) {
 
 
 
-  const { name = "Chat", myRole = "patient" } = route.params || {};
+  const { name = "Chat", myRole = "patient", chatId } = route.params || {};
   const headerHeight = useHeaderHeight();
 
   const listRef = useRef(null);
@@ -154,22 +155,49 @@ export default function ChatRoomScreen({ route }) {
 
   const quickReplies = useMemo(() => getQuickReplies(myRole), [myRole]);
 
-  const [messages, setMessages] = useState([
-    {
-      id: "m1",
-      fromMe: false,
-      text: "Assalam o Alaikum, how can I help?",
-      createdAt: Date.now() - 1000 * 60 * 8,
-      status: "delivered",
-    },
-    {
-      id: "m2",
-      fromMe: true,
-      text: "Walikum salam, I want to confirm my appointment.",
-      createdAt: Date.now() - 1000 * 60 * 7,
-      status: "seen",
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
+
+  useEffect(() => {
+    if (!chatId) {
+      setMessages([
+        {
+          id: "m1",
+          fromMe: false,
+          text: "Assalam o Alaikum, how can I help?",
+          createdAt: Date.now() - 1000 * 60 * 8,
+          status: "delivered",
+        },
+      ]);
+      return;
+    }
+
+    let mounted = true;
+    chatApi
+      .messages(chatId)
+      .then((data) => {
+        if (mounted && Array.isArray(data)) {
+          setMessages(data);
+          scrollToBottom(false);
+        }
+      })
+      .catch((err) => console.log("Failed to load messages", err));
+
+    const interval = setInterval(() => {
+      chatApi
+        .messages(chatId)
+        .then((data) => {
+          if (mounted && Array.isArray(data)) {
+            setMessages(data);
+          }
+        })
+        .catch(() => {});
+    }, 4000);
+
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, [chatId]);
 
   const sorted = useMemo(
     () => [...messages].sort((a, b) => a.createdAt - b.createdAt),
@@ -201,34 +229,55 @@ export default function ChatRoomScreen({ route }) {
     if (!t && (!files || files.length === 0)) return;
 
     const now = Date.now();
+    const tempId = String(now);
     const newMsg = {
-      id: String(now),
+      id: tempId,
       fromMe: true,
       text: t,
       createdAt: now,
-      status: "sent",
+      status: "sending",
       attachments: files, // image/file/audio
     };
 
     setMessages((prev) => [...prev, newMsg]);
     scrollToBottom(true);
 
-    // fake reply (remove when API)
-    setTyping(true);
-    setTimeout(() => {
-      setTyping(false);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: String(Date.now() + 1),
-          fromMe: false,
-          text: "Got it — I received your message.",
-          createdAt: Date.now() + 1,
-          status: "delivered",
-        },
-      ]);
-      scrollToBottom(true);
-    }, 700);
+    if (chatId) {
+      chatApi
+        .sendMessage(chatId, t)
+        .then((res) => {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === tempId ? { ...m, id: res.id || tempId, status: "sent" } : m
+            )
+          );
+        })
+        .catch((err) => {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === tempId ? { ...m, status: "failed" } : m
+            )
+          );
+          Alert.alert("Error", err?.message || "Failed to send message");
+        });
+    } else {
+      // Demo fallback reply
+      setTyping(true);
+      setTimeout(() => {
+        setTyping(false);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: String(Date.now() + 1),
+            fromMe: false,
+            text: "Got it — I received your message.",
+            createdAt: Date.now() + 1,
+            status: "delivered",
+          },
+        ]);
+        scrollToBottom(true);
+      }, 700);
+    }
   };
 
   // ========= Attachments (Expo) =========

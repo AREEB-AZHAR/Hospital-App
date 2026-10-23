@@ -9,7 +9,6 @@ export default function SignupDetailsScreen({ navigation }) {
   const [id, setId] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("Patient");
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
 
@@ -41,8 +40,6 @@ export default function SignupDetailsScreen({ navigation }) {
     return null;
   };
 
-  const normalizeRole = (r) => String(r || "patient").trim().toLowerCase();
-
   const onSignup = async () => {
     setMsg("");
 
@@ -58,7 +55,7 @@ export default function SignupDetailsScreen({ navigation }) {
       phone: phone.trim(),
       email: email.trim(),
       password: password.trim(),
-      role: normalizeRole(role),
+      role: "patient",
     });
 
     if (!res.ok) {
@@ -108,13 +105,6 @@ export default function SignupDetailsScreen({ navigation }) {
         style={{ borderWidth: 1, borderColor: "#ddd", borderRadius: 12, padding: 12 }}
       />
 
-      <TextInput
-        value={role}
-        onChangeText={setRole}
-        placeholder="Role (patient/doctor/admin/reception)"
-        autoCapitalize="none"
-        style={{ borderWidth: 1, borderColor: "#ddd", borderRadius: 12, padding: 12 }}
-      />
 
       <TextInput
         value={password}

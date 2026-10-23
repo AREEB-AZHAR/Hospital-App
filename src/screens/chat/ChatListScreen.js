@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,13 +6,23 @@ import {
   TouchableOpacity,
   StyleSheet,
   TextInput,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
+import { chatApi } from "../../services/api";
 
-const dummyChats = [
-  { id: "1", name: "Dr. Ahmed", last: "Please share your reports", time: "2m", unread: 2, online: true },
-  { id: "2", name: "Reception", last: "Your appointment is confirmed", time: "1h", unread: 0, online: false },
-  { id: "3", name: "Dr. Sara", last: "I reviewed your lab results.", time: "Yesterday", unread: 1, online: true },
-];
+function formatTime(isoStr) {
+  if (!isoStr) return "";
+  const d = new Date(isoStr);
+  const now = new Date();
+  const diffMs = now - d;
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}h`;
+  return d.toLocaleDateString();
+}
 
 function initials(name = "") {
   const parts = name.trim().split(" ").filter(Boolean);
@@ -22,18 +32,43 @@ function initials(name = "") {
 }
 
 export default function ChatListScreen({ navigation }) {
+  const [chats, setChats] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [query, setQuery] = useState("");
+
+  const loadContacts = useCallback(async () => {
+    try {
+      const data = await chatApi.contacts();
+      if (Array.isArray(data)) setChats(data);
+    } catch (err) {
+      console.log("Failed to load contacts", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadContacts();
+  }, [loadContacts]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadContacts();
+    setRefreshing(false);
+  }, [loadContacts]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return dummyChats;
-    return dummyChats.filter((c) => {
+    if (!q) return chats;
+    return chats.filter((c) => {
       return (
         c.name.toLowerCase().includes(q) ||
-        (c.last ?? "").toLowerCase().includes(q)
+        (c.last ?? "").toLowerCase().includes(q) ||
+        (c.department ?? "").toLowerCase().includes(q)
       );
     });
-  }, [query]);
+  }, [query, chats]);
 
   return (
     <View style={styles.container}>
@@ -51,61 +86,76 @@ export default function ChatListScreen({ navigation }) {
         />
       </View>
 
-      <FlatList
-        data={filtered}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={filtered.length === 0 ? { flex: 1 } : undefined}
-        ItemSeparatorComponent={() => <View style={styles.sep} />}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>No chats found</Text>
-            <Text style={styles.emptySub}>Try a different search.</Text>
-          </View>
-        }
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.row}
-            onPress={() =>
-              navigation.navigate("ChatRoom", { chatId: item.id, name: item.name })
-            }
-          >
-            {/* Avatar */}
-            <View style={styles.avatarWrap}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{initials(item.name)}</Text>
-              </View>
-
-              {/* Online dot */}
-              {item.online ? <View style={styles.onlineDot} /> : null}
+      {loading && !refreshing ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" />
+          <Text style={{ marginTop: 10, color: "#777" }}>Loading chats…</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => item.id || item._id}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          contentContainerStyle={filtered.length === 0 ? { flex: 1 } : undefined}
+          ItemSeparatorComponent={() => <View style={styles.sep} />}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Text style={styles.emptyTitle}>No chats found</Text>
+              <Text style={styles.emptySub}>No active conversations yet.</Text>
             </View>
-
-            {/* Text */}
-            <View style={{ flex: 1 }}>
-              <View style={styles.topLine}>
-                <Text style={styles.name} numberOfLines={1}>
-                  {item.name}
-                </Text>
-                <Text style={styles.time}>{item.time}</Text>
-              </View>
-
-              <View style={styles.bottomLine}>
-                <Text style={styles.last} numberOfLines={1}>
-                  {item.last}
-                </Text>
-
-                {item.unread > 0 ? (
-                  <View style={styles.unreadBadge}>
-                    <Text style={styles.unreadText}>
-                      {item.unread > 9 ? "9+" : String(item.unread)}
-                    </Text>
+          }
+          renderItem={({ item }) => {
+            const timeText = item.lastAt ? formatTime(item.lastAt) : (item.time || "");
+            const lastText = item.last || (item.department ? `${item.department} • Tap to message` : "Tap to message");
+            return (
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={styles.row}
+                onPress={() =>
+                  navigation.navigate("ChatRoom", {
+                    chatId: item.id || item._id,
+                    name: item.name,
+                  })
+                }
+              >
+                {/* Avatar */}
+                <View style={styles.avatarWrap}>
+                  <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>{initials(item.name)}</Text>
                   </View>
-                ) : null}
-              </View>
-            </View>
-          </TouchableOpacity>
-        )}
-      />
+                  {item.online ? <View style={styles.onlineDot} /> : null}
+                </View>
+
+                {/* Text */}
+                <View style={{ flex: 1 }}>
+                  <View style={styles.topLine}>
+                    <Text style={styles.name} numberOfLines={1}>
+                      {item.name}
+                    </Text>
+                    {timeText ? <Text style={styles.time}>{timeText}</Text> : null}
+                  </View>
+
+                  <View style={styles.bottomLine}>
+                    <Text style={styles.last} numberOfLines={1}>
+                      {lastText}
+                    </Text>
+
+                    {item.unread > 0 ? (
+                      <View style={styles.unreadBadge}>
+                        <Text style={styles.unreadText}>
+                          {item.unread > 9 ? "9+" : String(item.unread)}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          }}
+        />
+      )}
     </View>
   );
 }

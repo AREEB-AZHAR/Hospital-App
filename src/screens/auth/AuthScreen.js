@@ -81,6 +81,15 @@ export default function AuthScreen({ navigation }) {
             />
           </View>
 
+          <Pressable
+            onPress={() => navigation.navigate("ForgotPassword")}
+            style={{ alignSelf: "flex-end", marginTop: 8 }}
+          >
+            <Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 13, fontWeight: "700" }}>
+              Forgot Password?
+            </Text>
+          </Pressable>
+
           {msg ? (
             <Text style={{ color: "#ffb4b4", marginTop: 10, fontWeight: "800" }}>{msg}</Text>
           ) : null}
