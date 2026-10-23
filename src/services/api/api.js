@@ -1,7 +1,7 @@
 import { NativeModules, Platform } from "react-native";
 import { getToken } from "../storage";
 
-const CURRENT_IP = "192.168.2.124";
+const CURRENT_IP = "192.168.1.6";
 
 export function getBaseUrl() {
   if (process.env.EXPO_PUBLIC_API_URL) {
