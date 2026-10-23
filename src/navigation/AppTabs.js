@@ -2,6 +2,7 @@
 import React, { useContext, useMemo } from "react";
 import { Platform, StyleSheet } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthContext } from "../context/AuthContext";
 import { colors, radii, shadows } from "../theme";
 import {
@@ -79,6 +80,23 @@ function getTabIcon(tabName, focused, color) {
 
 export default function AppTabs() {
   const { user } = useContext(AuthContext);
+  const insets = useSafeAreaInsets();
+
+  const safeBottom = Math.max(insets.bottom, Platform.OS === "ios" ? 20 : 10);
+  const tabHeight = (Platform.OS === "ios" ? 54 : 58) + safeBottom;
+
+  const dynamicTabBarStyle = useMemo(
+    () => ({
+      backgroundColor: colors.surface,
+      borderTopWidth: 1,
+      borderTopColor: colors.surfaceBorder,
+      height: tabHeight,
+      paddingTop: 8,
+      paddingBottom: safeBottom,
+      ...shadows.subtle,
+    }),
+    [tabHeight, safeBottom]
+  );
 
   const role = String(user?.role || "patient").trim().toLowerCase();
 
@@ -141,7 +159,7 @@ export default function AppTabs() {
         headerTitleStyle: styles.headerTitle,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: dynamicTabBarStyle,
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarHideOnKeyboard: true,
       }}

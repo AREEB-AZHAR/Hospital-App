@@ -179,7 +179,7 @@ export default function DoctorHomeScreen({ navigation }) {
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 28 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         <View

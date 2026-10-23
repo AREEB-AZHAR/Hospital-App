@@ -13,18 +13,19 @@ The mobile interface has been upgraded with a **clinical design system** and a *
   - **Standardized Typography & Spacing Tokens**: Consistent type scales, soft multi-layer shadow elevations, and ergonomic corner radii.
 - ⚡ **Handcrafted Custom SVG Icon Library (`src/components/icons/`)**:
   - Replaced all raw unicode emojis (`👨‍⚕️`, `📅`, `🧾`, `💬`, `⭐`, `💳`, `🚪`) with over 25 scalable, stroke-based vector icons (`HomeIcon`, `StethoscopeIcon`, `CalendarIcon`, `ChatBubbleIcon`, `UserIcon`, `HospitalBuildingIcon`, `PillIcon`, `PrescriptionIcon`, `ReportHeartIcon`, `MicrophoneIcon`, `SendIcon`, `PlayIcon`, `StopIcon`, `StarFilledIcon`, `ClockIcon`, `ShieldCheckIcon`, `CreditCardIcon`, `ChevronRightIcon`, etc.).
-- 📱 **Sleek Bottom Tab Navigation (`AppTabs.js`)**:
+- 📱 **Sleek Bottom Tab Navigation & Safe Area Adaptability (`AppTabs.js`)**:
   - Custom SVG tab icons with active state tinting and stroke emphasis.
-  - Streamlined patient navigation: 5 core tabs (Home, Doctors, Appointments, Chat, Profile) with secondary screens accessible via stack transitions.
-- ✨ **Hero Dashboard (`HomeScreen.js`)**:
-  - Welcoming avatar header with role badge and discreet logout trigger.
-  - Next Appointment Hero Card with doctor credentials, verified shield badge, rating, and immediate reschedule/cancel controls.
-  - Interactive 4-grid healthcare services section with colored icon backgrounds.
-  - Live doctor & department search with instant dropdown results.
+  - Dynamically adapts height and bottom padding via `useSafeAreaInsets()` to prevent overlap with Android 3-button system bars and gesture handles.
+  - Generous `paddingBottom: 120` clearance applied across all screens so action buttons ("Confirm Booking", "Sign Out", "Discard") are never covered by navigation bars.
+- 📅 **Live Appointment Synchronization & Filter Tabs (`HomeScreen.js` & `MyAppointmentScreen.js`)**:
+  - `useFocusEffect` integration ensures appointment and doctor lists refresh immediately when switching tabs.
+  - Dedicated patient tabs: **Upcoming** (including active and pending requests), **All**, and **History**.
+  - Immediate reflection of new bookings on the Next Appointment hero card.
 - 💬 **Enhanced Telemedicine Chat (`ChatRoomScreen.js`)**:
   - Custom SVG audio playback controls (`PlayIcon`, `StopIcon`) with dynamic waveform track.
   - Media composer equipped with SVG Attachment (`+`), Microphone (`mic`), and Send vector buttons.
   - Visual read receipts with SVG single and double checkmarks (`CheckIcon`, `CheckDoubleIcon`).
+  - Bulletproof keyboard handling with safe navigation header offset.
 - 🛡️ **Session Self-Healing & Automated Token Refresh (`api.js` & `AuthContext.js`)**:
   - Transparent access token refreshing via refresh tokens on 401 responses.
   - Graceful token expiration handling: auto-clears expired or invalidated tokens when backend restarts and smoothly returns to the login screen instead of throwing unhandled exceptions.
