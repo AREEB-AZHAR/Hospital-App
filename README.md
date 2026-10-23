@@ -69,7 +69,7 @@ Before setting up the project, ensure you have the following installed:
 | **npm** | `>= 10.x` (Tested on `11.14.1`) | Package manager |
 | **Git** | Any recent version | Version control |
 | **Expo Go** | Latest (from App Store or Google Play) | Required to run the app on a physical phone |
-| **MongoDB** | MongoDB Atlas (Cloud) or Local MongoDB | Database instance |
+| **MongoDB** | Built-in in-memory fallback (zero-setup), local MongoDB, or MongoDB Atlas | Database instance |
 
 ---
 
@@ -113,7 +113,7 @@ CORS_ORIGIN=http://localhost:8081,http://localhost:19006,http://192.168.1.6:8081
 NODE_ENV=development
 MONGODB_CONNECT_TIMEOUT_MS=15000
 ```
-> **Note on MongoDB**: Replace `MONGODB_URI` with your MongoDB Atlas connection string or local MongoDB instance (`mongodb://127.0.0.1:27017/hospital`). Make sure your IP is allowlisted in MongoDB Atlas Network Access.
+> **Zero-Setup Database Out of the Box**: If no external MongoDB instance is running, the backend automatically boots a local in-memory MongoDB instance (`mongodb-memory-server`) so you can test and develop immediately without creating cloud accounts or installing local database services. When ready for persistent cloud storage, simply update `MONGODB_URI` with your MongoDB Atlas connection string.
 
 #### B. Frontend Configuration (`.env`)
 Create or edit `.env` in the root directory:
