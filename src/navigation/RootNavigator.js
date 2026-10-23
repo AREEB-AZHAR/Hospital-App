@@ -8,7 +8,8 @@ import AuthStack from "./AuthStack";
 import AppTabs from "./AppTabs";
 import DoctorDetailScreen from "../screens/tabs/DoctorDetailScreen";
 import PatientProfileScreen from "../screens/role/PatientProfileScreen";
-
+import BookAppointmentScreen from "../screens/tabs/BookAppointmentScreen";
+import DepartmentsScreen from "../screens/tabs/DepartmentsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -22,11 +23,20 @@ function AppStack() {
         options={{ animation: "slide_from_right" }}
       />
       <Stack.Screen
-  name="PatientProfile"
-  component={PatientProfileScreen}
-  options={{ animation: "slide_from_right" }}
-/>
-
+        name="PatientProfile"
+        component={PatientProfileScreen}
+        options={{ animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="BookAppointment"
+        component={BookAppointmentScreen}
+        options={{ animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="DepartmentsOverview"
+        component={DepartmentsScreen}
+        options={{ animation: "slide_from_right" }}
+      />
     </Stack.Navigator>
   );
 }

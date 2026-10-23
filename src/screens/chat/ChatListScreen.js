@@ -7,9 +7,10 @@ import {
   StyleSheet,
   TextInput,
   ActivityIndicator,
-  RefreshControl,
 } from "react-native";
 import { chatApi } from "../../services/api";
+import { colors, radii, shadows } from "../../theme";
+import { SearchIcon, ChatBubbleIcon } from "../../components/icons";
 
 function formatTime(isoStr) {
   if (!isoStr) return "";
@@ -73,13 +74,14 @@ export default function ChatListScreen({ navigation }) {
   return (
     <View style={styles.container}>
       {/* Search */}
-      <View style={styles.searchWrap}>
+      <View style={[styles.searchWrap, { flexDirection: "row", alignItems: "center", paddingHorizontal: 12 }]}>
+        <SearchIcon size={18} color={colors.textMuted} strokeWidth={2} />
         <TextInput
           value={query}
           onChangeText={setQuery}
           placeholder="Search chats…"
-          placeholderTextColor="#777"
-          style={styles.search}
+          placeholderTextColor={colors.textLight}
+          style={[styles.search, { flex: 1, marginLeft: 8, borderWidth: 0, paddingHorizontal: 0 }]}
           autoCapitalize="none"
           autoCorrect={false}
           clearButtonMode="while-editing"
@@ -88,8 +90,8 @@ export default function ChatListScreen({ navigation }) {
 
       {loading && !refreshing ? (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" />
-          <Text style={{ marginTop: 10, color: "#777" }}>Loading chats…</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={{ marginTop: 10, color: colors.textMuted }}>Loading chats…</Text>
         </View>
       ) : (
         <FlatList
@@ -102,8 +104,9 @@ export default function ChatListScreen({ navigation }) {
           ItemSeparatorComponent={() => <View style={styles.sep} />}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>No chats found</Text>
-              <Text style={styles.emptySub}>No active conversations yet.</Text>
+              <ChatBubbleIcon size={40} color={colors.primary} strokeWidth={1.8} />
+              <Text style={styles.emptyTitle}>No Chats Found</Text>
+              <Text style={styles.emptySub}>No active medical conversations yet.</Text>
             </View>
           }
           renderItem={({ item }) => {

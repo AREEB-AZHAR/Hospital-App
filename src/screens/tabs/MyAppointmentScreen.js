@@ -6,12 +6,16 @@ import { appointmentsApi } from "../../services/api";
 import StatusPill from "../../components/common/StatusPill";
 import SoftButton from "../../components/common/SoftButton";
 import { normalizeDate, safeText } from "../../utils/helpers";
+import { colors, radii, shadows } from "../../theme";
+import { CalendarIcon, ClockIcon, StethoscopeIcon, UserIcon } from "../../components/icons";
 
 function SectionTitle({ title, count }) {
   return (
-    <View style={{ marginTop: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-      <Text style={{ fontSize: 14, fontWeight: "900", color: "#111" }}>{title}</Text>
-      <Text style={{ fontSize: 12, fontWeight: "900", color: "#666" }}>{count}</Text>
+    <View style={{ marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+      <Text style={{ fontSize: 15, fontWeight: "900", color: colors.textPrimary }}>{title}</Text>
+      <View style={{ backgroundColor: colors.surfaceSubtle, paddingHorizontal: 8, paddingVertical: 2, borderRadius: radii.full }}>
+        <Text style={{ fontSize: 12, fontWeight: "800", color: colors.textMuted }}>{count}</Text>
+      </View>
     </View>
   );
 }
@@ -20,12 +24,13 @@ function CardWrap({ children }) {
   return (
     <View
       style={{
-        marginTop: 10,
-        padding: 12,
+        marginTop: 12,
+        padding: 16,
         borderWidth: 1,
-        borderColor: "#eee",
-        borderRadius: 14,
-        backgroundColor: "white",
+        borderColor: colors.surfaceBorder,
+        borderRadius: radii.xl,
+        backgroundColor: colors.surface,
+        ...shadows.subtle,
       }}
     >
       {children}
@@ -234,20 +239,46 @@ export default function MyAppointmentScreen() {
 
     return (
       <CardWrap key={id}>
-        <Text style={{ fontWeight: "900", color: "#111" }}>{leftTitle}</Text>
-        <Text style={{ marginTop: 4, opacity: 0.75 }} numberOfLines={2}>
-          {subtitle}
-        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primaryLight, alignItems: "center", justifyContent: "center", marginRight: 10 }}>
+              {isReception || isAdmin ? (
+                <UserIcon size={20} color={colors.primary} />
+              ) : (
+                <StethoscopeIcon size={20} color={colors.primary} />
+              )}
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 15, fontWeight: "900", color: colors.textPrimary }}>{leftTitle}</Text>
+              <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 1 }}>
+                {safeText(a.department?.name || a.department || "General Consultation")}
+              </Text>
+            </View>
+          </View>
 
-        <View style={{ marginTop: 8 }}>
           <StatusPill status={a.status} />
         </View>
 
-        <View style={{ flexDirection: "row", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
-          {canConfirm && <SoftButton text="Confirm" onPress={() => updateStatus(id, "upcoming")} />}
-          {canArrive && <SoftButton text="Arrived" onPress={() => updateStatus(id, "arrived")} />}
+        <View style={{ flexDirection: "row", gap: 10, marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.surfaceBorder }}>
+          <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: colors.surfaceSubtle, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+            <CalendarIcon size={12} color={colors.primary} strokeWidth={2} />
+            <Text style={{ fontSize: 11, fontWeight: "700", color: colors.textPrimary, marginLeft: 4 }}>
+              {safeText(a.date)}
+            </Text>
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: colors.surfaceSubtle, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+            <ClockIcon size={12} color={colors.accent} strokeWidth={2} />
+            <Text style={{ fontSize: 11, fontWeight: "700", color: colors.textPrimary, marginLeft: 4 }}>
+              {safeText(a.time)}
+            </Text>
+          </View>
+        </View>
+
+        <View style={{ flexDirection: "row", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
+          {canConfirm && <SoftButton primary text="Confirm" onPress={() => updateStatus(id, "upcoming")} />}
+          {canArrive && <SoftButton primary text="Arrived" onPress={() => updateStatus(id, "arrived")} />}
           {canCancel && <SoftButton danger text="Cancel" onPress={() => cancel(id)} />}
-          {!canConfirm && !canArrive && !canCancel && <SoftButton text="No Action" disabled />}
+          {!canConfirm && !canArrive && !canCancel && <SoftButton text="No Action Needed" disabled />}
         </View>
       </CardWrap>
     );

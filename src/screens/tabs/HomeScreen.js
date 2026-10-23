@@ -1,3 +1,4 @@
+// src/screens/tabs/HomeScreen.js
 import React, { useContext, useMemo, useState, useEffect, useCallback } from "react";
 import {
   View,
@@ -7,59 +8,53 @@ import {
   ScrollView,
   ImageBackground,
   Alert,
+  StyleSheet,
+  StatusBar,
 } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
 import { AppDataContext } from "../../context/AppDataContext";
 import { dummyDepartments } from "../../data/dummyDepartments";
 import { usersApi, appointmentsApi, chatApi } from "../../services/api";
+import { colors, radii, shadows, typography } from "../../theme";
+import {
+  SearchIcon,
+  StethoscopeIcon,
+  CalendarIcon,
+  ChatBubbleIcon,
+  ReportHeartIcon,
+  HospitalBuildingIcon,
+  ClockIcon,
+  StarFilledIcon,
+  LogoutIcon,
+  ChevronRightIcon,
+  ShieldCheckIcon,
+  UserIcon,
+} from "../../components/icons";
+import StatCard from "../../components/common/StatCard";
+import SoftButton from "../../components/common/SoftButton";
+import StatusPill from "../../components/common/StatusPill";
 
 function getDoctorByName(name, doctors) {
   return doctors.find((d) => d.name === name) || null;
 }
 
-function Card({ title, subtitle, icon, onPress }) {
+function ActionCard({ title, subtitle, icon, iconBg, iconColor, onPress }) {
   return (
     <Pressable
       onPress={onPress}
-      android_ripple={{ color: "rgba(0,0,0,0.08)" }}
-      style={({ pressed }) => ({
-        flex: 1,
-        backgroundColor: "rgba(255,255,255,0.95)",
-        borderRadius: 16,
-        padding: 16,
-        borderWidth: 1,
-        borderColor: "#eee",
-        transform: [{ scale: pressed ? 0.98 : 1 }],
-        opacity: pressed ? 0.95 : 1,
-        overflow: "hidden",
-      })}
+      android_ripple={{ color: "rgba(13, 110, 253, 0.08)" }}
+      style={({ pressed }) => [
+        styles.actionCard,
+        pressed && styles.cardPressed,
+      ]}
     >
-      <Text style={{ fontSize: 22 }}>{icon}</Text>
-      <Text style={{ marginTop: 10, fontSize: 16, fontWeight: "900" }}>
-        {title}
+      <View style={[styles.actionIconWrap, { backgroundColor: iconBg }]}>
+        {icon}
+      </View>
+      <Text style={styles.actionTitle}>{title}</Text>
+      <Text style={styles.actionSubtitle} numberOfLines={2}>
+        {subtitle}
       </Text>
-      <Text style={{ marginTop: 4, opacity: 0.7 }}>{subtitle}</Text>
-    </Pressable>
-  );
-}
-
-function ResultRow({ title, subtitle, onPress }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      android_ripple={{ color: "rgba(0,0,0,0.06)" }}
-      style={({ pressed }) => ({
-        paddingVertical: 12,
-        paddingHorizontal: 12,
-        borderRadius: 12,
-        opacity: pressed ? 0.92 : 1,
-        overflow: "hidden",
-      })}
-    >
-      <Text style={{ fontWeight: "900" }}>{title}</Text>
-      {subtitle ? (
-        <Text style={{ marginTop: 4, opacity: 0.7 }}>{subtitle}</Text>
-      ) : null}
     </Pressable>
   );
 }
@@ -79,27 +74,6 @@ function parseDateTime(dateStr, timeStr) {
   if (ap === "AM" && h === 12) h = 0;
 
   return new Date(yyyy, (mm || 1) - 1, dd || 1, h, min, 0);
-}
-
-function Pill({ text, onPress }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      android_ripple={{ color: "rgba(0,0,0,0.06)" }}
-      style={({ pressed }) => ({
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        borderRadius: 999,
-        backgroundColor: "rgba(255,255,255,0.95)",
-        borderWidth: 1,
-        borderColor: "#eee",
-        opacity: pressed ? 0.92 : 1,
-        overflow: "hidden",
-      })}
-    >
-      <Text style={{ fontWeight: "900" }}>{text}</Text>
-    </Pressable>
-  );
 }
 
 export default function HomeScreen({ navigation }) {
@@ -217,246 +191,288 @@ export default function HomeScreen({ navigation }) {
     return getDoctorByName(nextAppointment.doctorName, doctors);
   }, [nextAppointment, doctors]);
 
+  const roleName = user?.role
+    ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+    : "Patient";
+
   return (
     <ImageBackground
       source={require("../../../assets/home.jpg")}
-      style={{ flex: 1 }}
+      style={styles.bgContainer}
       resizeMode="cover"
     >
-      <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.25)" }}>
+      <StatusBar barStyle="light-content" translucent />
+      <View style={styles.darkOverlay}>
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ padding: 16, paddingBottom: 28 }}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
         >
-          {/* Header */}
-          <View
-            style={{
-              marginTop: 6,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={{ fontSize: 22, fontWeight: "900", color: "white" }}>
-                Hi{user?.name ? `, ${user.name}` : ""} 👋
-              </Text>
-              <Text style={{ marginTop: 4, opacity: 0.85, color: "white" }}>
-                {user?.role ? `${user.role} Dashboard` : "Dashboard"}
-              </Text>
+          {/* Header Bar */}
+          <View style={styles.header}>
+            <View style={styles.headerUserRow}>
+              <View style={styles.avatarCircle}>
+                <Text style={styles.avatarInitial}>
+                  {(user?.name || "U")[0].toUpperCase()}
+                </Text>
+              </View>
+              <View style={styles.headerInfo}>
+                <View style={styles.greetingRow}>
+                  <Text style={styles.greetingText}>
+                    Hi, {user?.name || "User"}
+                  </Text>
+                  <View style={styles.roleBadge}>
+                    <Text style={styles.roleBadgeText}>{roleName}</Text>
+                  </View>
+                </View>
+                <Text style={styles.hospitalSub}>City Care Hospital</Text>
+              </View>
             </View>
 
             <Pressable
               onPress={logout}
-              android_ripple={{ color: "rgba(255,255,255,0.25)" }}
-              style={({ pressed }) => ({
-                paddingHorizontal: 12,
-                paddingVertical: 10,
-                borderRadius: 999,
-                backgroundColor: "rgba(0,0,0,0.8)",
-                transform: [{ scale: pressed ? 0.97 : 1 }],
-                overflow: "hidden",
-              })}
+              android_ripple={{ color: "rgba(255,255,255,0.2)" }}
+              style={({ pressed }) => [
+                styles.logoutBtn,
+                pressed && { opacity: 0.8 },
+              ]}
+              accessibilityLabel="Logout"
             >
-              <Text style={{ color: "white", fontWeight: "900" }}>Logout</Text>
+              <LogoutIcon size={18} color={colors.white} strokeWidth={2.2} />
             </Pressable>
           </View>
 
-          {/* Continue strip */}
-          <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
-            <Pill text="📅 Book" onPress={() => navigation.navigate("Book")} />
-            <Pill
-              text="🗂️ Appointments"
+          {/* Quick Nav Chips */}
+          <View style={styles.quickNavRow}>
+            <Pressable
+              onPress={() => navigation.navigate("Book")}
+              style={({ pressed }) => [
+                styles.quickChip,
+                pressed && styles.cardPressed,
+              ]}
+            >
+              <CalendarIcon size={15} color={colors.primary} strokeWidth={2.2} />
+              <Text style={styles.quickChipText}>Book Visit</Text>
+            </Pressable>
+
+            <Pressable
               onPress={() => navigation.navigate("Appointments")}
-            />
-            <Pill text="💬 Chat" onPress={() => navigation.navigate("Chat")} />
+              style={({ pressed }) => [
+                styles.quickChip,
+                pressed && styles.cardPressed,
+              ]}
+            >
+              <ClockIcon size={15} color={colors.accent} strokeWidth={2.2} />
+              <Text style={styles.quickChipText}>My Bookings</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => navigation.navigate("Chat")}
+              style={({ pressed }) => [
+                styles.quickChip,
+                pressed && styles.cardPressed,
+              ]}
+            >
+              <ChatBubbleIcon size={15} color={colors.secondary} strokeWidth={2.2} />
+              <Text style={styles.quickChipText}>Chat Support</Text>
+            </Pressable>
           </View>
 
-          {/* Search + dropdown */}
-          <View style={{ marginTop: 14 }}>
-            <View
-              style={{
-                backgroundColor: "rgba(255,255,255,0.95)",
-                borderRadius: 14,
-                borderWidth: 1,
-                borderColor: "#eee",
-                paddingHorizontal: 12,
-                paddingVertical: 10,
-              }}
-            >
+          {/* Search Box */}
+          <View style={styles.searchSection}>
+            <View style={styles.searchBar}>
+              <SearchIcon size={18} color={colors.textMuted} strokeWidth={2} />
               <TextInput
                 value={q}
                 onChangeText={setQ}
-                placeholder="Search doctors, departments..."
-                style={{ fontSize: 15 }}
+                placeholder="Search doctors, departments, specialists…"
+                placeholderTextColor={colors.textLight}
+                style={styles.searchInput}
               />
+              {q ? (
+                <Pressable onPress={() => setQ("")}>
+                  <Text style={styles.clearSearchText}>✕</Text>
+                </Pressable>
+              ) : null}
             </View>
 
+            {/* Dropdown search results */}
             {showDropdown ? (
-              <View
-                style={{
-                  marginTop: 10,
-                  backgroundColor: "rgba(255,255,255,0.96)",
-                  borderRadius: 16,
-                  borderWidth: 1,
-                  borderColor: "#eee",
-                  padding: 10,
-                }}
-              >
-
+              <View style={styles.dropdownBox}>
                 {matchedDoctors.length > 0 ? (
-                  <>
-                    <Text style={{ fontWeight: "900", marginBottom: 6 }}>
-                      Doctors
-                    </Text>
+                  <View>
+                    <Text style={styles.dropdownHeader}>Doctors</Text>
                     {matchedDoctors.map((d) => (
-                      <ResultRow
-                        key={d.id}
-                        title={d.name}
-                        subtitle={d.department}
+                      <Pressable
+                        key={d.id || d._id}
                         onPress={() => {
                           setQ("");
                           navigation.navigate("DoctorDetail", {
-                            doctorId: d.id,
+                            doctorId: d.id || d._id,
                           });
                         }}
-                      />
+                        style={({ pressed }) => [
+                          styles.dropdownItem,
+                          pressed && styles.dropdownItemPressed,
+                        ]}
+                      >
+                        <View style={styles.dropdownItemLeft}>
+                          <View style={styles.dropdownAvatar}>
+                            <StethoscopeIcon size={14} color={colors.primary} />
+                          </View>
+                          <View>
+                            <Text style={styles.dropdownItemTitle}>{d.name}</Text>
+                            <Text style={styles.dropdownItemSub}>
+                              {d.department || "General"}
+                            </Text>
+                          </View>
+                        </View>
+                        <ChevronRightIcon size={16} color={colors.textMuted} />
+                      </Pressable>
                     ))}
-                  </>
+                  </View>
                 ) : null}
 
                 {matchedDepts.length > 0 ? (
-                  <>
-                    <View style={{ height: 10 }} />
-                    <Text style={{ fontWeight: "900", marginBottom: 6 }}>
-                      Departments
-                    </Text>
+                  <View style={{ marginTop: matchedDoctors.length > 0 ? 12 : 0 }}>
+                    <Text style={styles.dropdownHeader}>Departments</Text>
                     {matchedDepts.map((dep) => (
-                      <ResultRow
+                      <Pressable
                         key={dep.id}
-                        title={dep.name}
-                        subtitle={dep.desc}
                         onPress={() => {
                           setQ("");
                           navigation.navigate("Find Doctor", {
                             department: dep.name,
                           });
                         }}
-                      />
+                        style={({ pressed }) => [
+                          styles.dropdownItem,
+                          pressed && styles.dropdownItemPressed,
+                        ]}
+                      >
+                        <View style={styles.dropdownItemLeft}>
+                          <View style={styles.dropdownAvatar}>
+                            <HospitalBuildingIcon size={14} color={colors.secondary} />
+                          </View>
+                          <View>
+                            <Text style={styles.dropdownItemTitle}>{dep.name}</Text>
+                            <Text style={styles.dropdownItemSub}>{dep.desc}</Text>
+                          </View>
+                        </View>
+                        <ChevronRightIcon size={16} color={colors.textMuted} />
+                      </Pressable>
                     ))}
-                  </>
+                  </View>
                 ) : null}
               </View>
             ) : null}
           </View>
 
-          {/* Next appointment preview */}
-          <View
-            style={{
-              marginTop: 14,
-              backgroundColor: "rgba(255,255,255,0.95)",
-              borderRadius: 18,
-              padding: 16,
-              borderWidth: 1,
-              borderColor: "#eee",
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Text style={{ fontSize: 16, fontWeight: "900" }}>
-                Next Appointment
-              </Text>
+          {/* Next Appointment Card */}
+          <View style={styles.nextCard}>
+            <View style={styles.cardHeaderRow}>
+              <View style={styles.cardBadgeRow}>
+                <View style={styles.pulseDot} />
+                <Text style={styles.cardBadgeText}>NEXT APPOINTMENT</Text>
+              </View>
 
               <Pressable
                 onPress={() => navigation.navigate("Appointments")}
-                android_ripple={{ color: "rgba(0,0,0,0.06)" }}
-                style={({ pressed }) => ({
-                  paddingHorizontal: 10,
-                  paddingVertical: 8,
-                  borderRadius: 999,
-                  opacity: pressed ? 0.92 : 1,
-                  overflow: "hidden",
-                })}
+                style={({ pressed }) => [
+                  styles.viewAllBtn,
+                  pressed && { opacity: 0.7 },
+                ]}
               >
-                <Text style={{ fontWeight: "900" }}>View all</Text>
+                <Text style={styles.viewAllText}>View all</Text>
+                <ChevronRightIcon size={14} color={colors.primary} />
               </Pressable>
             </View>
 
             {!nextAppointment ? (
-              <View style={{ marginTop: 10 }}>
-                <Text style={{ fontWeight: "900" }}>
-                  No upcoming appointments
+              <View style={styles.emptyApptBox}>
+                <View style={styles.emptyIconCircle}>
+                  <CalendarIcon size={26} color={colors.primary} strokeWidth={2} />
+                </View>
+                <Text style={styles.emptyApptTitle}>
+                  No Upcoming Consultations
                 </Text>
-                <Text style={{ marginTop: 6, opacity: 0.7 }}>
-                  Book a doctor to see it here.
+                <Text style={styles.emptyApptSub}>
+                  Find verified doctors and schedule an in-clinic or teleconsultation today.
                 </Text>
 
                 <Pressable
                   onPress={() => navigation.navigate("Find Doctor")}
-                  android_ripple={{ color: "rgba(255,255,255,0.22)" }}
-                  style={({ pressed }) => ({
-                    marginTop: 12,
-                    backgroundColor: "black",
-                    padding: 14,
-                    borderRadius: 14,
-                    alignItems: "center",
-                    opacity: pressed ? 0.92 : 1,
-                    transform: [{ scale: pressed ? 0.98 : 1 }],
-                    overflow: "hidden",
-                  })}
+                  android_ripple={{ color: "rgba(255,255,255,0.2)" }}
+                  style={({ pressed }) => [
+                    styles.primaryActionBtn,
+                    pressed && styles.cardPressed,
+                  ]}
                 >
-                  <Text style={{ color: "white", fontWeight: "900" }}>
-                    Find a Doctor
-                  </Text>
+                  <StethoscopeIcon size={16} color={colors.white} strokeWidth={2.2} />
+                  <Text style={styles.primaryActionBtnText}>Find a Specialist</Text>
                 </Pressable>
               </View>
             ) : (
-              <View style={{ marginTop: 10 }}>
-                <Text style={{ fontSize: 16, fontWeight: "900" }}>
-                  {nextAppointment.doctorName}
-                </Text>
+              <View style={styles.apptDetailsBox}>
+                <View style={styles.apptDocHeader}>
+                  <View style={styles.docAvatarCircle}>
+                    <Text style={styles.docAvatarInitial}>
+                      {(nextAppointment.doctorName || "D")[0].toUpperCase()}
+                    </Text>
+                  </View>
 
-                <Text style={{ marginTop: 6, opacity: 0.75 }}>
-                  {nextAppointment.department}
-                </Text>
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <View style={{ flexDirection: "row", alignItems: "center" }}>
+                      <Text style={styles.apptDocName}>
+                        {nextAppointment.doctorName}
+                      </Text>
+                      <View style={{ marginLeft: 6 }}>
+                        <ShieldCheckIcon size={16} color={colors.accent} />
+                      </View>
+                    </View>
 
-                {/* ✅ rating + fee preview */}
-                {nextDoc ? (
-                  <Text style={{ marginTop: 6, opacity: 0.8 }}>
-                    ⭐ {nextDoc.rating}   💳 Rs {nextDoc.fee}
-                  </Text>
-                ) : null}
+                    <Text style={styles.apptDeptText}>
+                      {nextAppointment.department || "General Practice"}
+                    </Text>
 
-                <Text style={{ marginTop: 8, fontWeight: "800" }}>
-                  📅 {nextAppointment.date} ⏰ {nextAppointment.time}
-                </Text>
+                    {nextDoc ? (
+                      <View style={styles.apptRatingRow}>
+                        <StarFilledIcon size={13} color={colors.warning} />
+                        <Text style={styles.apptRatingText}>
+                          {nextDoc.rating || "4.8"}
+                        </Text>
+                        <Text style={styles.apptFeeText}>
+                          • Rs {nextDoc.fee || "1,500"}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
 
-                {/* ✅ Details + Reschedule + Cancel */}
-                <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
-                  <Pressable
+                  <StatusPill status={nextAppointment.status || "confirmed"} />
+                </View>
+
+                {/* Date & Time Pills */}
+                <View style={styles.scheduleRow}>
+                  <View style={styles.scheduleChip}>
+                    <CalendarIcon size={14} color={colors.primary} strokeWidth={2} />
+                    <Text style={styles.scheduleText}>{nextAppointment.date}</Text>
+                  </View>
+
+                  <View style={styles.scheduleChip}>
+                    <ClockIcon size={14} color={colors.accent} strokeWidth={2} />
+                    <Text style={styles.scheduleText}>{nextAppointment.time}</Text>
+                  </View>
+                </View>
+
+                {/* Action Buttons */}
+                <View style={styles.apptActionRow}>
+                  <SoftButton
+                    text="Details"
                     onPress={() => navigation.navigate("Appointments")}
-                    android_ripple={{ color: "rgba(0,0,0,0.06)" }}
-                    style={({ pressed }) => ({
-                      flex: 1,
-                      backgroundColor: "white",
-                      padding: 14,
-                      borderRadius: 14,
-                      alignItems: "center",
-                      borderWidth: 1,
-                      borderColor: "#eee",
-                      opacity: pressed ? 0.92 : 1,
-                      overflow: "hidden",
-                    })}
-                  >
-                    <Text style={{ fontWeight: "900" }}>Details</Text>
-                  </Pressable>
-
-                  <Pressable
+                  />
+                  <SoftButton
+                    text="Reschedule"
+                    primary
                     onPress={() => {
                       const docId = nextDoc?._id || nextDoc?.id;
                       if (docId) {
@@ -467,271 +483,682 @@ export default function HomeScreen({ navigation }) {
                         });
                       }
                     }}
-                    android_ripple={{ color: "rgba(0,0,0,0.06)" }}
-                    style={({ pressed }) => ({
-                      flex: 1,
-                      backgroundColor: "white",
-                      padding: 14,
-                      borderRadius: 14,
-                      alignItems: "center",
-                      borderWidth: 1,
-                      borderColor: "#eee",
-                      opacity: pressed ? 0.92 : 1,
-                      overflow: "hidden",
-                    })}
-                  >
-                    <Text style={{ fontWeight: "900" }}>Reschedule</Text>
-                  </Pressable>
-
-                  <Pressable
-                    onPress={() => handleCancelAppointment(nextAppointment._id || nextAppointment.id)}
-                    android_ripple={{ color: "rgba(0,0,0,0.06)" }}
-                    style={({ pressed }) => ({
-                      flex: 1,
-                      backgroundColor: "white",
-                      padding: 14,
-                      borderRadius: 14,
-                      alignItems: "center",
-                      borderWidth: 1,
-                      borderColor: "#eee",
-                      opacity: pressed ? 0.92 : 1,
-                      overflow: "hidden",
-                    })}
-                  >
-                    <Text style={{ fontWeight: "900", color: "#b91c1c" }}>Cancel</Text>
-                  </Pressable>
+                  />
+                  <SoftButton
+                    text="Cancel"
+                    danger
+                    onPress={() =>
+                      handleCancelAppointment(
+                        nextAppointment._id || nextAppointment.id
+                      )
+                    }
+                  />
                 </View>
               </View>
             )}
           </View>
 
-          {/* Quick stats */}
-          <View style={{ flexDirection: "row", gap: 12, marginTop: 14 }}>
-            <View
-              style={{
-                flex: 1,
-                backgroundColor: "rgba(255,255,255,0.95)",
-                borderRadius: 16,
-                padding: 14,
-                borderWidth: 1,
-                borderColor: "#eee",
-              }}
-            >
-              <Text style={{ opacity: 0.7 }}>Upcoming</Text>
-              <Text style={{ fontSize: 22, fontWeight: "900", marginTop: 6 }}>
-                {upcomingCount}
-              </Text>
-              <Text style={{ opacity: 0.7 }}>Appointments</Text>
+          {/* Quick Stats Grid */}
+          <View style={styles.statsRow}>
+            <StatCard
+              label="UPCOMING"
+              value={upcomingCount}
+              hint="Scheduled Visits"
+              icon={<CalendarIcon size={18} color={colors.primary} />}
+              color={colors.primary}
+            />
+            <StatCard
+              label="REPORTS"
+              value={reportCount}
+              hint="Lab Documents"
+              icon={<ReportHeartIcon size={18} color={colors.accent} />}
+              color={colors.accent}
+            />
+          </View>
+
+          {/* Section: Quick Actions */}
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Healthcare Services</Text>
+          </View>
+
+          <View style={styles.actionGrid}>
+            <View style={styles.gridRow}>
+              <ActionCard
+                icon={<StethoscopeIcon size={22} color={colors.primary} strokeWidth={2.2} />}
+                iconBg={colors.primaryLight}
+                title="Find Doctor"
+                subtitle="Specialists & ratings"
+                onPress={() => navigation.navigate("Find Doctor")}
+              />
+              <ActionCard
+                icon={<CalendarIcon size={22} color={colors.accent} strokeWidth={2.2} />}
+                iconBg={colors.accentLight}
+                title="Book Visit"
+                subtitle="Select date & slot"
+                onPress={() => navigation.navigate("Book")}
+              />
             </View>
 
-            <View
-              style={{
-                flex: 1,
-                backgroundColor: "rgba(255,255,255,0.95)",
-                borderRadius: 16,
-                padding: 14,
-                borderWidth: 1,
-                borderColor: "#eee",
-              }}
-            >
-              <Text style={{ opacity: 0.7 }}>New</Text>
-              <Text style={{ fontSize: 22, fontWeight: "900", marginTop: 6 }}>
-                {reportCount}
-              </Text>
-              <Text style={{ opacity: 0.7 }}>Lab Reports</Text>
+            <View style={styles.gridRow}>
+              <ActionCard
+                icon={<ReportHeartIcon size={22} color={colors.warning} strokeWidth={2.2} />}
+                iconBg={colors.warningLight}
+                title="Lab Reports"
+                subtitle="History & test logs"
+                onPress={() => navigation.navigate("Profile")}
+              />
+              <ActionCard
+                icon={<ChatBubbleIcon size={22} color={colors.secondary} strokeWidth={2.2} />}
+                iconBg={colors.secondaryLight}
+                title="Online Chat"
+                subtitle="Direct doctor consult"
+                onPress={() => navigation.navigate("Chat")}
+              />
             </View>
           </View>
 
-          {/* ✅ Recent Chats (NEW) */}
-          <View
-            style={{
-              marginTop: 14,
-              backgroundColor: "rgba(255,255,255,0.95)",
-              borderRadius: 18,
-              padding: 14,
-              borderWidth: 1,
-              borderColor: "#eee",
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Text style={{ fontSize: 16, fontWeight: "900" }}>
-                Recent Chats
-              </Text>
+          {/* Section: Recent Consultations */}
+          <View style={styles.recentChatCard}>
+            <View style={styles.cardHeaderRow}>
+              <Text style={styles.sectionInnerTitle}>Recent Consultations</Text>
               <Pressable
                 onPress={() => navigation.navigate("Chat")}
-                android_ripple={{ color: "rgba(0,0,0,0.06)" }}
-                style={({ pressed }) => ({
-                  paddingHorizontal: 10,
-                  paddingVertical: 8,
-                  borderRadius: 999,
-                  opacity: pressed ? 0.92 : 1,
-                  overflow: "hidden",
-                })}
+                style={({ pressed }) => [
+                  styles.viewAllBtn,
+                  pressed && { opacity: 0.7 },
+                ]}
               >
-                <Text style={{ fontWeight: "900" }}>Open</Text>
+                <Text style={styles.viewAllText}>Open inbox</Text>
+                <ChevronRightIcon size={14} color={colors.primary} />
               </Pressable>
             </View>
 
-            <View style={{ marginTop: 8 }}>
-              {recentChats.length === 0 ? (
-                <View
-                  style={{
-                    padding: 16,
-                    backgroundColor: "white",
-                    borderRadius: 14,
-                    borderWidth: 1,
-                    borderColor: "#eee",
-                  }}
+            {recentChats.length === 0 ? (
+              <View style={styles.emptyChatsBox}>
+                <Text style={styles.emptyChatsText}>
+                  No active conversations. Connect with a clinic doctor or reception anytime.
+                </Text>
+              </View>
+            ) : (
+              recentChats.map((c, idx) => (
+                <Pressable
+                  key={c.id || c._id}
+                  onPress={() =>
+                    navigation.navigate("Chat", {
+                      screen: "ChatRoom",
+                      params: { chatId: c.id || c._id, name: c.name },
+                    })
+                  }
+                  android_ripple={{ color: "rgba(13, 110, 253, 0.08)" }}
+                  style={({ pressed }) => [
+                    styles.chatRow,
+                    idx !== 0 && { marginTop: 8 },
+                    pressed && styles.cardPressed,
+                  ]}
                 >
-                  <Text style={{ color: "#777", textAlign: "center" }}>
-                    No recent conversations
-                  </Text>
-                </View>
-              ) : (
-                recentChats.map((c, idx) => (
-                  <Pressable
-                    key={c.id || c._id}
-                    onPress={() =>
-                      navigation.navigate("Chat", {
-                        screen: "ChatRoom",
-                        params: { chatId: c.id || c._id, name: c.name },
-                      })
-                    }
-                    android_ripple={{ color: "rgba(0,0,0,0.06)" }}
-                    style={({ pressed }) => ({
-                      paddingVertical: 12,
-                      paddingHorizontal: 12,
-                      borderRadius: 14,
-                      opacity: pressed ? 0.92 : 1,
-                      overflow: "hidden",
-                      backgroundColor: "white",
-                      borderWidth: 1,
-                      borderColor: "#eee",
-                      marginTop: idx === 0 ? 0 : 10,
-                    })}
-                  >
-                    <Text style={{ fontWeight: "900" }}>{c.name}</Text>
-                    <Text style={{ marginTop: 4, opacity: 0.75 }} numberOfLines={1}>
-                      {c.last || "Start a conversation"}
+                  <View style={styles.chatAvatar}>
+                    <Text style={styles.chatAvatarText}>
+                      {(c.name || "D")[0].toUpperCase()}
                     </Text>
-                  </Pressable>
-                ))
-              )}
-            </View>
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 10 }}>
+                    <Text style={styles.chatName}>{c.name}</Text>
+                    <Text style={styles.chatSnippet} numberOfLines={1}>
+                      {c.last || "Tap to continue discussion"}
+                    </Text>
+                  </View>
+                  <ChevronRightIcon size={16} color={colors.textLight} />
+                </Pressable>
+              ))
+            )}
           </View>
 
-          {/* Actions */}
-          <Text
-            style={{
-              marginTop: 18,
-              marginBottom: 10,
-              fontSize: 16,
-              fontWeight: "900",
-              color: "white",
-            }}
-          >
-            Quick Actions
-          </Text>
-
-          <View style={{ flexDirection: "row", gap: 12 }}>
-            <Card
-              icon="👨‍⚕️"
-              title="Find Doctor"
-              subtitle="Browse & filter doctors"
-              onPress={() => navigation.navigate("Find Doctor")}
-            />
-            <Card
-              icon="📅"
-              title="Book"
-              subtitle="Pick date & time"
-              onPress={() => navigation.navigate("Book")}
-            />
-          </View>
-
-          <View style={{ flexDirection: "row", gap: 12, marginTop: 12 }}>
-            <Card
-              icon="🧾"
-              title="Reports"
-              subtitle="Lab results & history"
-              onPress={() => navigation.navigate("Profile")} // later: LabReportsScreen
-            />
-            <Card
-              icon="💬"
-              title="Chat"
-              subtitle="Talk to reception"
-              onPress={() => navigation.navigate("Chat")}
-            />
-          </View>
-
-          {/* ✅ Health tip (NEW) */}
-          <View
-            style={{
-              marginTop: 14,
-              backgroundColor: "rgba(255,255,255,0.95)",
-              borderRadius: 18,
-              padding: 16,
-              borderWidth: 1,
-              borderColor: "#eee",
-            }}
-          >
-            <Text style={{ fontSize: 16, fontWeight: "900" }}>
-              Health Tip
-            </Text>
-            <Text style={{ marginTop: 8, opacity: 0.75 }}>
-              Stay hydrated and take proper rest. You can send reports and voice notes in chat for quick guidance.
-            </Text>
-
-            <Pressable
-              onPress={() => navigation.navigate("Chat")}
-              android_ripple={{ color: "rgba(0,0,0,0.06)" }}
-              style={({ pressed }) => ({
-                marginTop: 12,
-                backgroundColor: "black",
-                padding: 14,
-                borderRadius: 14,
-                alignItems: "center",
-                opacity: pressed ? 0.92 : 1,
-                transform: [{ scale: pressed ? 0.98 : 1 }],
-                overflow: "hidden",
-              })}
-            >
-              <Text style={{ color: "white", fontWeight: "900" }}>
-                Open Chat
-              </Text>
-            </Pressable>
-          </View>
-
-          {/* Departments shortcut */}
+          {/* Departments Directory Shortcut */}
           <Pressable
             onPress={() => navigation.navigate("Departments")}
-            android_ripple={{ color: "rgba(0,0,0,0.08)" }}
-            style={({ pressed }) => ({
-              marginTop: 16,
-              backgroundColor: "rgba(255,255,255,0.95)",
-              borderRadius: 16,
-              padding: 16,
-              borderWidth: 1,
-              borderColor: "#eee",
-              transform: [{ scale: pressed ? 0.99 : 1 }],
-              opacity: pressed ? 0.95 : 1,
-              overflow: "hidden",
-            })}
+            android_ripple={{ color: "rgba(13, 110, 253, 0.08)" }}
+            style={({ pressed }) => [
+              styles.deptBanner,
+              pressed && styles.cardPressed,
+            ]}
           >
-            <Text style={{ fontWeight: "900", fontSize: 16 }}>
-              Departments
-            </Text>
-            <Text style={{ marginTop: 4, opacity: 0.7 }}>
-              Cardiology, ENT, Pediatrics, Dermatology...
-            </Text>
+            <View style={styles.deptBannerLeft}>
+              <View style={styles.deptBannerIconWrap}>
+                <HospitalBuildingIcon size={24} color={colors.primary} strokeWidth={2} />
+              </View>
+              <View style={{ marginLeft: 14 }}>
+                <Text style={styles.deptBannerTitle}>Hospital Departments</Text>
+                <Text style={styles.deptBannerSub}>
+                  Cardiology, ENT, Pediatrics, Neurology, Orthopedics
+                </Text>
+              </View>
+            </View>
+            <ChevronRightIcon size={20} color={colors.primary} />
           </Pressable>
+
+          {/* Health Tip */}
+          <View style={styles.healthTipCard}>
+            <View style={styles.healthTipHeader}>
+              <ShieldCheckIcon size={18} color={colors.accent} />
+              <Text style={styles.healthTipTitle}>Clinical Health Advisory</Text>
+            </View>
+            <Text style={styles.healthTipBody}>
+              Remember to maintain routine vitals checkups and stay hydrated. You can attach previous laboratory files and audio questions in chat for quick doctor review.
+            </Text>
+          </View>
         </ScrollView>
       </View>
     </ImageBackground>
   );
 }
+
+const styles = StyleSheet.create({
+  bgContainer: {
+    flex: 1,
+  },
+  darkOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.4)",
+  },
+  scrollContent: {
+    padding: 16,
+    paddingTop: StatusBar.currentHeight ? StatusBar.currentHeight + 12 : 44,
+    paddingBottom: 40,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  headerUserRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  avatarCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: radii.full,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: colors.white,
+    ...shadows.subtle,
+  },
+  avatarInitial: {
+    color: colors.white,
+    fontWeight: "900",
+    fontSize: 18,
+  },
+  headerInfo: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  greetingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  greetingText: {
+    color: colors.white,
+    fontSize: 19,
+    fontWeight: "900",
+    letterSpacing: -0.3,
+  },
+  roleBadge: {
+    marginLeft: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radii.full,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+  },
+  roleBadgeText: {
+    color: colors.white,
+    fontSize: 10,
+    fontWeight: "800",
+    textTransform: "uppercase",
+  },
+  hospitalSub: {
+    color: "rgba(255, 255, 255, 0.8)",
+    fontSize: 12,
+    fontWeight: "600",
+    marginTop: 2,
+  },
+  logoutBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: radii.full,
+    backgroundColor: "rgba(15, 23, 42, 0.65)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.15)",
+  },
+  quickNavRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 14,
+  },
+  quickChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.surfaceGlass,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: radii.full,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.6)",
+    ...shadows.subtle,
+  },
+  quickChipText: {
+    marginLeft: 6,
+    fontWeight: "700",
+    fontSize: 12,
+    color: colors.textPrimary,
+  },
+  searchSection: {
+    marginTop: 14,
+  },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.surfaceGlass,
+    borderRadius: radii.lg,
+    paddingHorizontal: 14,
+    paddingVertical: Platform.OS === "ios" ? 12 : 10,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    ...shadows.subtle,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 14,
+    color: colors.textPrimary,
+    fontWeight: "500",
+  },
+  clearSearchText: {
+    fontSize: 14,
+    color: colors.textMuted,
+    paddingHorizontal: 6,
+  },
+  dropdownBox: {
+    marginTop: 8,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    ...shadows.card,
+  },
+  dropdownHeader: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: colors.textMuted,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    marginBottom: 6,
+  },
+  dropdownItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: radii.sm,
+  },
+  dropdownItemPressed: {
+    backgroundColor: colors.surfaceSubtle,
+  },
+  dropdownItemLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  dropdownAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: radii.full,
+    backgroundColor: colors.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  dropdownItemTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: colors.textPrimary,
+  },
+  dropdownItemSub: {
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: 1,
+  },
+  nextCard: {
+    marginTop: 14,
+    backgroundColor: colors.surface,
+    borderRadius: radii.xl,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    ...shadows.card,
+  },
+  cardHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  cardBadgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  pulseDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.accent,
+    marginRight: 6,
+  },
+  cardBadgeText: {
+    fontSize: 11,
+    fontWeight: "900",
+    color: colors.textMuted,
+    letterSpacing: 0.6,
+  },
+  viewAllBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  viewAllText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: colors.primary,
+    marginRight: 2,
+  },
+  emptyApptBox: {
+    alignItems: "center",
+    paddingVertical: 18,
+    paddingHorizontal: 12,
+  },
+  emptyIconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: radii.full,
+    backgroundColor: colors.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  emptyApptTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: colors.textPrimary,
+  },
+  emptyApptSub: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    textAlign: "center",
+    marginTop: 4,
+    lineHeight: 18,
+  },
+  primaryActionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.primary,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: radii.md,
+    marginTop: 14,
+    ...shadows.subtle,
+  },
+  primaryActionBtnText: {
+    color: colors.white,
+    fontWeight: "800",
+    fontSize: 14,
+    marginLeft: 8,
+  },
+  apptDetailsBox: {
+    marginTop: 14,
+  },
+  apptDocHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  docAvatarCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: radii.full,
+    backgroundColor: colors.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+  },
+  docAvatarInitial: {
+    fontSize: 18,
+    fontWeight: "900",
+    color: colors.primary,
+  },
+  apptDocName: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: colors.textPrimary,
+  },
+  apptDeptText: {
+    fontSize: 13,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  apptRatingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
+  },
+  apptRatingText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: colors.textPrimary,
+    marginLeft: 3,
+  },
+  apptFeeText: {
+    fontSize: 12,
+    color: colors.textMuted,
+    marginLeft: 4,
+  },
+  scheduleRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 14,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.surfaceBorder,
+  },
+  scheduleChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.surfaceSubtle,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radii.sm,
+  },
+  scheduleText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: colors.textPrimary,
+    marginLeft: 6,
+  },
+  apptActionRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 14,
+  },
+  statsRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 14,
+  },
+  sectionHeaderRow: {
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "900",
+    color: colors.white,
+    letterSpacing: -0.2,
+  },
+  actionGrid: {
+    gap: 10,
+  },
+  gridRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  actionCard: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    ...shadows.subtle,
+  },
+  actionIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: radii.md,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  actionTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: colors.textPrimary,
+    marginTop: 10,
+  },
+  actionSubtitle: {
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  cardPressed: {
+    transform: [{ scale: 0.98 }],
+    opacity: 0.95,
+  },
+  recentChatCard: {
+    marginTop: 14,
+    backgroundColor: colors.surface,
+    borderRadius: radii.xl,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    ...shadows.subtle,
+  },
+  sectionInnerTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: colors.textPrimary,
+  },
+  emptyChatsBox: {
+    padding: 16,
+    alignItems: "center",
+    marginTop: 6,
+  },
+  emptyChatsText: {
+    fontSize: 13,
+    color: colors.textMuted,
+    textAlign: "center",
+    lineHeight: 18,
+  },
+  chatRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: radii.md,
+    backgroundColor: colors.surfaceSubtle,
+  },
+  chatAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: radii.full,
+    backgroundColor: colors.secondaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  chatAvatarText: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: colors.secondary,
+  },
+  chatName: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: colors.textPrimary,
+  },
+  chatSnippet: {
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: 1,
+  },
+  deptBanner: {
+    marginTop: 14,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    ...shadows.subtle,
+  },
+  deptBannerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  deptBannerIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: radii.md,
+    backgroundColor: colors.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  deptBannerTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: colors.textPrimary,
+  },
+  deptBannerSub: {
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  healthTipCard: {
+    marginTop: 14,
+    backgroundColor: "#F0FDF4",
+    borderRadius: radii.lg,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#BBF7D0",
+  },
+  healthTipHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  healthTipTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#166534",
+    marginLeft: 6,
+  },
+  healthTipBody: {
+    fontSize: 12,
+    color: "#15803D",
+    marginTop: 6,
+    lineHeight: 18,
+  },
+});

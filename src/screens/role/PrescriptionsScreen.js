@@ -13,6 +13,8 @@ import {
 } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
 import { appointmentsApi } from "../../services/api";
+import { colors, radii, shadows } from "../../theme";
+import { PrescriptionIcon, PillIcon, CheckIcon } from "../../components/icons";
 
 function PrescriptionCard({ appt, onSave }) {
   const [note, setNote] = useState(appt.note || "");
@@ -107,22 +109,29 @@ function PrescriptionCard({ appt, onSave }) {
         disabled={saving || !note.trim()}
         style={({ pressed }) => ({
           marginTop: 10,
-          backgroundColor: saved ? "#d1fae5" : !note.trim() ? "#f3f4f6" : "#111",
-          borderRadius: 12,
+          backgroundColor: saved ? colors.accentLight : !note.trim() ? colors.surfaceSubtle : colors.primary,
+          borderWidth: 1,
+          borderColor: saved ? "#A7F3D0" : !note.trim() ? colors.surfaceBorder : colors.primaryDark,
+          borderRadius: radii.md,
           padding: 12,
+          flexDirection: "row",
           alignItems: "center",
+          justifyContent: "center",
           opacity: pressed ? 0.9 : 1,
           overflow: "hidden",
         })}
       >
+        {saved ? (
+          <CheckIcon size={16} color={colors.accent} strokeWidth={2.4} style={{ marginRight: 6 }} />
+        ) : null}
         <Text
           style={{
             fontWeight: "900",
             fontSize: 13,
-            color: saved ? "#065f46" : !note.trim() ? "#9ca3af" : "white",
+            color: saved ? colors.accent : !note.trim() ? colors.textLight : colors.white,
           }}
         >
-          {saved ? "✅ Saved!" : saving ? "Saving…" : "Save Prescription"}
+          {saved ? "Saved Successfully!" : saving ? "Saving…" : "Save Prescription"}
         </Text>
       </Pressable>
     </View>
