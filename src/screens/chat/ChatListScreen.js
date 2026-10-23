@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TextInput,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { chatApi } from "../../services/api";
 import { colors, radii, shadows } from "../../theme";

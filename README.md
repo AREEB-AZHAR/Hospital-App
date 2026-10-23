@@ -25,6 +25,25 @@ The mobile interface has been upgraded with a **clinical design system** and a *
   - Custom SVG audio playback controls (`PlayIcon`, `StopIcon`) with dynamic waveform track.
   - Media composer equipped with SVG Attachment (`+`), Microphone (`mic`), and Send vector buttons.
   - Visual read receipts with SVG single and double checkmarks (`CheckIcon`, `CheckDoubleIcon`).
+- 🛡️ **Session Self-Healing & Automated Token Refresh (`api.js` & `AuthContext.js`)**:
+  - Transparent access token refreshing via refresh tokens on 401 responses.
+  - Graceful token expiration handling: auto-clears expired or invalidated tokens when backend restarts and smoothly returns to the login screen instead of throwing unhandled exceptions.
+  - Zero-friction testing: instant "Fill Demo Patient" and "Fill Demo Doctor" one-tap buttons on the authentication screen.
+  - Automatic doctor & demo patient seeding on backend startup (`seedUsers.js`).
+
+---
+
+## 🔑 Ready-to-Test Demo Accounts
+
+| Role | Name | Phone Number | Password | Department / Specialization |
+| :--- | :--- | :--- | :--- | :--- |
+| **Patient** | Alex Morgan | `03001234567` | `123456` | General Consultations |
+| **Doctor** | Dr. Sarah Jenkins | `03001112233` | `123456` | Cardiology (Senior Interventional) |
+| **Doctor** | Dr. Marcus Vance | `03002223344` | `123456` | Neurology (Consultant Neurosurgeon) |
+| **Doctor** | Dr. Elena Rostova | `03003334455` | `123456` | Pediatrics (Child Healthcare) |
+| **Doctor** | Dr. Tariq Al-Mansoor | `03004445566` | `123456` | Orthopedics (Joint Surgeon) |
+| **Doctor** | Dr. Aisha Patel | `03005556677` | `123456` | Dermatology (Aesthetic & Clinical) |
+| **Doctor** | Dr. James Wilson | `03006667788` | `123456` | General Medicine (Internal Medicine) |
 
 ---
 
