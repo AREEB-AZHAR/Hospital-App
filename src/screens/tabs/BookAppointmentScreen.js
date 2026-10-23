@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, Pressable, Platform } from "react-native";
+import { View, Text, Pressable, Platform, ScrollView } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { appointmentsApi } from "../../services/api";
+import { colors, radii, shadows } from "../../theme";
+import { CalendarIcon, ClockIcon } from "../../components/icons";
 
 const TIME_SLOTS = [
   "09:00 AM",
@@ -60,7 +62,7 @@ export default function BookAppointmentScreen({ route, navigation }) {
         <Text style={{ marginTop: 8, color: "#666" }}>Please go back and select a doctor first.</Text>
         <Pressable
           onPress={() => navigation.navigate("Find Doctor")}
-          style={{ marginTop: 20, backgroundColor: "#111", padding: 14, borderRadius: 14 }}
+          style={{ marginTop: 20, backgroundColor: colors.primary, paddingHorizontal: 20, paddingVertical: 14, borderRadius: 14 }}
         >
           <Text style={{ color: "white", fontWeight: "900" }}>Find a Doctor</Text>
         </Pressable>
@@ -69,10 +71,13 @@ export default function BookAppointmentScreen({ route, navigation }) {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#f7f8fa", padding: 16 }}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: "#f7f8fa" }}
+      contentContainerStyle={{ padding: 16, paddingBottom: 120, flexGrow: 1 }}
+    >
       <Text style={{ fontSize: 22, fontWeight: "900", color: "#111" }}>Book Appointment</Text>
 
-      <View style={{ marginTop: 16, backgroundColor: "white", padding: 16, borderRadius: 16, borderWidth: 1, borderColor: "#eee" }}>
+      <View style={{ marginTop: 16, backgroundColor: "white", padding: 16, borderRadius: 16, borderWidth: 1, borderColor: "#eee", ...shadows.subtle }}>
         <Text style={{ fontSize: 13, fontWeight: "900", color: "#888" }}>BOOKING WITH</Text>
         <Text style={{ fontSize: 18, fontWeight: "900", color: "#111", marginTop: 4 }}>{doctorName}</Text>
         <Text style={{ fontSize: 14, color: "#666", marginTop: 2 }}>{department}</Text>
@@ -87,10 +92,14 @@ export default function BookAppointmentScreen({ route, navigation }) {
           borderRadius: 14,
           borderWidth: 1,
           borderColor: "#eee",
-          opacity: pressed ? 0.9 : 1
+          flexDirection: "row",
+          alignItems: "center",
+          opacity: pressed ? 0.9 : 1,
+          ...shadows.subtle
         })}
       >
-        <Text style={{ fontSize: 16, fontWeight: "800", color: "#111" }}>📅 {formatDate(dateObj)}</Text>
+        <CalendarIcon size={18} color={colors.primary} />
+        <Text style={{ fontSize: 16, fontWeight: "800", color: "#111", marginLeft: 10 }}>{formatDate(dateObj)}</Text>
       </Pressable>
 
       {showPicker && (
@@ -116,10 +125,10 @@ export default function BookAppointmentScreen({ route, navigation }) {
               style={{
                 paddingHorizontal: 16,
                 paddingVertical: 12,
-                backgroundColor: isSelected ? "#111" : "white",
+                backgroundColor: isSelected ? colors.primary : "white",
                 borderRadius: 12,
                 borderWidth: 1,
-                borderColor: isSelected ? "#111" : "#e5e7eb",
+                borderColor: isSelected ? colors.primary : "#e5e7eb",
               }}
             >
               <Text style={{ fontSize: 14, fontWeight: "900", color: isSelected ? "white" : "#374151" }}>
@@ -136,20 +145,21 @@ export default function BookAppointmentScreen({ route, navigation }) {
         onPress={onConfirm}
         disabled={!time || saving}
         style={({ pressed }) => ({
-          marginTop: "auto",
-          marginBottom: 20,
-          backgroundColor: !time ? "#e5e7eb" : "#111",
+          marginTop: 32,
+          marginBottom: 16,
+          backgroundColor: !time ? "#e5e7eb" : colors.primary,
           padding: 18,
           borderRadius: 16,
           alignItems: "center",
           opacity: pressed ? 0.9 : 1,
+          ...shadows.button,
         })}
       >
         <Text style={{ color: !time ? "#9ca3af" : "white", fontWeight: "900", fontSize: 16 }}>
           {saving ? "Confirming..." : "Confirm Booking"}
         </Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 

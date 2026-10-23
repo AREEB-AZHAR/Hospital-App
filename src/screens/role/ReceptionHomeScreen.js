@@ -236,7 +236,7 @@ export default function ReceptionHomeScreen({ navigation }) {
   return (
     <ImageBackground source={require("../../../assets/home.jpg")} style={{ flex: 1 }} resizeMode="cover">
       <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.25)" }}>
-        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 28 }}>
+        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
           {/* Header */}
           <View style={{ marginTop: 6, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <View style={{ flex: 1, paddingRight: 10 }}>

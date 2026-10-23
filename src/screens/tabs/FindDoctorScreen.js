@@ -189,7 +189,7 @@ export default function FindDoctorScreen({ navigation, route }) {
 
         <FlatList
           style={{ marginTop: 12 }}
-          contentContainerStyle={{ paddingBottom: 30 }}
+          contentContainerStyle={{ paddingBottom: 120 }}
           data={list}
           keyExtractor={(item) => String(item.id || item._id)}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}

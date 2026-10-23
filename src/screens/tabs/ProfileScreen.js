@@ -168,7 +168,7 @@ export default function ProfileScreen() {
       style={{ flex: 1, backgroundColor: "#f7f8fa" }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 120 }}>
         {/* Header card */}
         <View
           style={{

@@ -1,10 +1,12 @@
 import React, { useContext, useMemo, useState, useEffect, useCallback } from "react";
 import { View, Text, ScrollView, Alert } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { AuthContext } from "../../context/AuthContext";
 import { appointmentsApi } from "../../services/api";
 
 import StatusPill from "../../components/common/StatusPill";
 import SoftButton from "../../components/common/SoftButton";
+import TabChip from "../../components/common/TabChip";
 import { normalizeDate, safeText } from "../../utils/helpers";
 import { colors, radii, shadows } from "../../theme";
 import { CalendarIcon, ClockIcon, StethoscopeIcon, UserIcon } from "../../components/icons";
@@ -52,6 +54,8 @@ export default function MyAppointmentScreen() {
 
   // Reception/Admin view mode
   const [queueMode, setQueueMode] = useState("active"); // active | all
+  // Patient tab filter: "upcoming" | "all" | "history"
+  const [patientTab, setPatientTab] = useState("upcoming");
 
   const todayKey = useMemo(() => {
     const d = new Date();
@@ -83,9 +87,11 @@ export default function MyAppointmentScreen() {
     }
   }, [isDoctor, isReception, isAdmin]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
 
   const updateStatus = async (id, status) => {
     try {
@@ -284,8 +290,33 @@ export default function MyAppointmentScreen() {
     );
   };
 
+  // -------- Patient list with Upcoming / All / History tabs ----------
+  const patientList = useMemo(() => {
+    if (!isPatient) return [];
+    if (patientTab === "upcoming") {
+      return (appointments || []).filter((a) => {
+        const s = String(a.status || "pending").toLowerCase();
+        return s === "pending" || s === "upcoming" || s === "confirmed" || s === "arrived";
+      });
+    }
+    if (patientTab === "history") {
+      return (appointments || []).filter((a) => {
+        const s = String(a.status || "pending").toLowerCase();
+        return s === "done" || s === "completed" || s === "cancelled";
+      });
+    }
+    return appointments || [];
+  }, [appointments, isPatient, patientTab]);
+
+  const upcomingPatientCount = useMemo(() => {
+    return (appointments || []).filter((a) => {
+      const s = String(a.status || "pending").toLowerCase();
+      return s === "pending" || s === "upcoming" || s === "confirmed" || s === "arrived";
+    }).length;
+  }, [appointments]);
+
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
+    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 18, fontWeight: "900", color: "#111" }}>{title}</Text>
@@ -311,6 +342,27 @@ export default function MyAppointmentScreen() {
             text={queueMode === "all" ? "All ✓" : "All"}
             onPress={() => setQueueMode("all")}
             disabled={queueMode === "all"}
+          />
+        </View>
+      )}
+
+      {/* Patient filter tabs */}
+      {isPatient && (
+        <View style={{ flexDirection: "row", gap: 8, marginTop: 14 }}>
+          <TabChip
+            label={`Upcoming (${upcomingPatientCount})`}
+            active={patientTab === "upcoming"}
+            onPress={() => setPatientTab("upcoming")}
+          />
+          <TabChip
+            label={`All (${appointments.length})`}
+            active={patientTab === "all"}
+            onPress={() => setPatientTab("all")}
+          />
+          <TabChip
+            label="History"
+            active={patientTab === "history"}
+            onPress={() => setPatientTab("history")}
           />
         </View>
       )}
@@ -349,10 +401,31 @@ export default function MyAppointmentScreen() {
         ) : (
           queueList.map(renderQueueOrPatientRow)
         )
-      ) : appointments.length === 0 ? (
-        <Text style={{ marginTop: 12, opacity: 0.75 }}>No appointments found.</Text>
+      ) : patientList.length === 0 ? (
+        <View
+          style={{
+            marginTop: 32,
+            alignItems: "center",
+            padding: 24,
+            backgroundColor: colors.surface,
+            borderRadius: radii.xl,
+            borderWidth: 1,
+            borderColor: colors.surfaceBorder,
+            ...shadows.subtle,
+          }}
+        >
+          <CalendarIcon size={36} color={colors.primary} />
+          <Text style={{ marginTop: 12, fontSize: 16, fontWeight: "900", color: colors.textPrimary }}>
+            {patientTab === "upcoming" ? "No Upcoming Appointments" : "No Appointments Found"}
+          </Text>
+          <Text style={{ marginTop: 4, color: colors.textMuted, textAlign: "center", fontSize: 13 }}>
+            {patientTab === "upcoming"
+              ? "Book a consultation with a specialist doctor from the Doctors tab."
+              : "Your consultation history will be listed here."}
+          </Text>
+        </View>
       ) : (
-        appointments.map(renderQueueOrPatientRow)
+        patientList.map(renderQueueOrPatientRow)
       )}
     </ScrollView>
   );

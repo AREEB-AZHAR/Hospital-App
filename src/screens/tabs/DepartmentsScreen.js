@@ -66,7 +66,7 @@ export default function DepartmentsScreen({ navigation }) {
 
       <FlatList
         style={{ marginTop: 14 }}
-        contentContainerStyle={{ paddingBottom: 28 }}
+        contentContainerStyle={{ paddingBottom: 120 }}
         data={data}
         keyExtractor={(item) => item.id}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}

@@ -35,6 +35,7 @@ import {
   CheckDoubleIcon,
   CheckIcon,
 } from "../../components/icons";
+import { useHeaderHeight } from "@react-navigation/elements";
 
 
 
@@ -148,7 +149,7 @@ export default function ChatRoomScreen({ route }) {
 
 
   const { name = "Chat", myRole = "patient", chatId } = route.params || {};
-  const headerHeight = useHeaderHeight();
+  const headerHeight = useHeaderHeight() || (Platform.OS === "ios" ? 88 : 64);
 
   const listRef = useRef(null);
 

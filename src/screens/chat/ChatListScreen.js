@@ -101,7 +101,7 @@ export default function ChatListScreen({ navigation }) {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
-          contentContainerStyle={filtered.length === 0 ? { flex: 1 } : undefined}
+          contentContainerStyle={filtered.length === 0 ? { flex: 1, paddingBottom: 120 } : { paddingBottom: 120 }}
           ItemSeparatorComponent={() => <View style={styles.sep} />}
           ListEmptyComponent={
             <View style={styles.empty}>

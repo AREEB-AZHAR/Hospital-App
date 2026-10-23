@@ -17,6 +17,7 @@ import { AppDataContext } from "../../context/AppDataContext";
 import { dummyDepartments } from "../../data/dummyDepartments";
 import { usersApi, appointmentsApi, chatApi } from "../../services/api";
 import { colors, radii, shadows, typography } from "../../theme";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   SearchIcon,
   StethoscopeIcon,
@@ -116,9 +117,11 @@ export default function HomeScreen({ navigation }) {
     }
   }, [user?.role]);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
 
   const handleCancelAppointment = useCallback((id) => {
     if (!id) return;
@@ -147,9 +150,15 @@ export default function HomeScreen({ navigation }) {
   }, []);
 
   const upcomingAppointments = useMemo(() => {
-    return (appointments || []).filter(
-      (a) => (a.status || "upcoming") === "upcoming"
-    );
+    return (appointments || []).filter((a) => {
+      const s = String(a.status || "pending").toLowerCase();
+      return (
+        s === "upcoming" ||
+        s === "pending" ||
+        s === "confirmed" ||
+        s === "arrived"
+      );
+    });
   }, [appointments]);
 
   const upcomingCount = useMemo(
@@ -668,7 +677,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingTop: StatusBar.currentHeight ? StatusBar.currentHeight + 12 : 44,
-    paddingBottom: 40,
+    paddingBottom: 120,
   },
   header: {
     flexDirection: "row",
