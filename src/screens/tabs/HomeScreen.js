@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useContext, useMemo, useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,11 +6,12 @@ import {
   Pressable,
   ScrollView,
   ImageBackground,
+  Alert,
 } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
 import { AppDataContext } from "../../context/AppDataContext";
-import { dummyDoctors } from "../../data/dummyDoctors";
 import { dummyDepartments } from "../../data/dummyDepartments";
+import { usersApi, appointmentsApi, chatApi } from "../../services/api";
 
 function getDoctorByName(name, doctors) {
   return doctors.find((d) => d.name === name) || null;
@@ -64,8 +65,6 @@ function ResultRow({ title, subtitle, onPress }) {
 }
 
 function parseDateTime(dateStr, timeStr) {
-  // dateStr: "YYYY-MM-DD"
-  // timeStr: "09:00 AM"
   if (!dateStr || !timeStr) return new Date(0);
 
   const [yyyy, mm, dd] = dateStr.split("-").map((n) => parseInt(n, 10));
@@ -82,7 +81,6 @@ function parseDateTime(dateStr, timeStr) {
   return new Date(yyyy, (mm || 1) - 1, dd || 1, h, min, 0);
 }
 
-// Small UI-only helpers
 function Pill({ text, onPress }) {
   return (
     <Pressable
@@ -106,11 +104,68 @@ function Pill({ text, onPress }) {
 
 export default function HomeScreen({ navigation }) {
   const { user, logout } = useContext(AuthContext);
-  const { appointments, labReports, cancelAppointment } =
-    useContext(AppDataContext);
+  const { labReports } = useContext(AppDataContext) || {};
 
   const [q, setQ] = useState("");
+  const [doctors, setDoctors] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [recentChats, setRecentChats] = useState([]);
   const query = q.trim().toLowerCase();
+
+  const loadData = useCallback(async () => {
+    try {
+      const [docsRes, chatsRes] = await Promise.allSettled([
+        usersApi.doctors(),
+        chatApi.contacts(),
+      ]);
+
+      if (docsRes.status === "fulfilled" && Array.isArray(docsRes.value)) {
+        setDoctors(docsRes.value);
+      }
+      if (chatsRes.status === "fulfilled" && Array.isArray(chatsRes.value)) {
+        setRecentChats(chatsRes.value.slice(0, 3));
+      }
+
+      if (user?.role === "patient") {
+        const appts = await appointmentsApi.myAppointments();
+        if (Array.isArray(appts)) {
+          setAppointments(appts);
+        }
+      }
+    } catch (err) {
+      console.log("Failed to load home screen data", err);
+    }
+  }, [user?.role]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleCancelAppointment = useCallback((id) => {
+    if (!id) return;
+    Alert.alert(
+      "Cancel Appointment",
+      "Are you sure you want to cancel this appointment?",
+      [
+        { text: "No", style: "cancel" },
+        {
+          text: "Yes, Cancel",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await appointmentsApi.cancel(id);
+              setAppointments((prev) =>
+                (prev || []).filter((a) => String(a._id || a.id) !== String(id))
+              );
+              Alert.alert("Success", "Appointment cancelled successfully");
+            } catch (err) {
+              Alert.alert("Error", err?.message || "Failed to cancel appointment");
+            }
+          },
+        },
+      ]
+    );
+  }, []);
 
   const upcomingAppointments = useMemo(() => {
     return (appointments || []).filter(
@@ -138,14 +193,14 @@ export default function HomeScreen({ navigation }) {
 
   const matchedDoctors = useMemo(() => {
     if (!query) return [];
-    return dummyDoctors
+    return doctors
       .filter(
         (d) =>
           d.name.toLowerCase().includes(query) ||
-          d.department.toLowerCase().includes(query)
+          (d.department && d.department.toLowerCase().includes(query))
       )
       .slice(0, 5);
-  }, [query]);
+  }, [query, doctors]);
 
   const matchedDepts = useMemo(() => {
     if (!query) return [];
@@ -157,20 +212,10 @@ export default function HomeScreen({ navigation }) {
   const showDropdown =
     query && (matchedDoctors.length > 0 || matchedDepts.length > 0);
 
-  // ✅ doctor object for next appointment (for rating/fee + reschedule)
   const nextDoc = useMemo(() => {
     if (!nextAppointment?.doctorName) return null;
-    return getDoctorByName(nextAppointment.doctorName, dummyDoctors);
-  }, [nextAppointment]);
-
-  // ✅ Recent chats (UI-only, until backend)
-  const recentChats = useMemo(
-    () => [
-      { id: "1", name: "Reception", last: "Your appointment is confirmed" },
-      { id: "2", name: "Dr. Ahmed", last: "Please share your reports" },
-    ],
-    []
-  );
+    return getDoctorByName(nextAppointment.doctorName, doctors);
+  }, [nextAppointment, doctors]);
 
   return (
     <ImageBackground
@@ -217,7 +262,7 @@ export default function HomeScreen({ navigation }) {
             </Pressable>
           </View>
 
-          {/* ✅ Continue strip (NEW) */}
+          {/* Continue strip */}
           <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
             <Pill text="📅 Book" onPress={() => navigation.navigate("Book")} />
             <Pill
@@ -258,6 +303,7 @@ export default function HomeScreen({ navigation }) {
                   padding: 10,
                 }}
               >
+
                 {matchedDoctors.length > 0 ? (
                   <>
                     <Text style={{ fontWeight: "900", marginBottom: 6 }}>
@@ -412,8 +458,9 @@ export default function HomeScreen({ navigation }) {
 
                   <Pressable
                     onPress={() => {
-                      if (nextDoc?.id) {
-                        navigation.navigate("Book", { doctorId: nextDoc.id });
+                      const docId = nextDoc?._id || nextDoc?.id;
+                      if (docId) {
+                        navigation.navigate("Book", { doctorId: docId });
                       } else {
                         navigation.navigate("Find Doctor", {
                           department: nextAppointment.department,
@@ -437,7 +484,7 @@ export default function HomeScreen({ navigation }) {
                   </Pressable>
 
                   <Pressable
-                    onPress={() => cancelAppointment(nextAppointment.id)}
+                    onPress={() => handleCancelAppointment(nextAppointment._id || nextAppointment.id)}
                     android_ripple={{ color: "rgba(0,0,0,0.06)" }}
                     style={({ pressed }) => ({
                       flex: 1,
@@ -451,7 +498,7 @@ export default function HomeScreen({ navigation }) {
                       overflow: "hidden",
                     })}
                   >
-                    <Text style={{ fontWeight: "900" }}>Cancel</Text>
+                    <Text style={{ fontWeight: "900", color: "#b91c1c" }}>Cancel</Text>
                   </Pressable>
                 </View>
               </View>
@@ -532,34 +579,50 @@ export default function HomeScreen({ navigation }) {
             </View>
 
             <View style={{ marginTop: 8 }}>
-              {recentChats.map((c, idx) => (
-                <Pressable
-                  key={c.id}
-                  onPress={() =>
-                    navigation.navigate("Chat", {
-                      screen: "ChatRoom",
-                      params: { chatId: c.id, name: c.name },
-                    })
-                  }
-                  android_ripple={{ color: "rgba(0,0,0,0.06)" }}
-                  style={({ pressed }) => ({
-                    paddingVertical: 12,
-                    paddingHorizontal: 12,
-                    borderRadius: 14,
-                    opacity: pressed ? 0.92 : 1,
-                    overflow: "hidden",
+              {recentChats.length === 0 ? (
+                <View
+                  style={{
+                    padding: 16,
                     backgroundColor: "white",
+                    borderRadius: 14,
                     borderWidth: 1,
                     borderColor: "#eee",
-                    marginTop: idx === 0 ? 0 : 10,
-                  })}
+                  }}
                 >
-                  <Text style={{ fontWeight: "900" }}>{c.name}</Text>
-                  <Text style={{ marginTop: 4, opacity: 0.75 }} numberOfLines={1}>
-                    {c.last}
+                  <Text style={{ color: "#777", textAlign: "center" }}>
+                    No recent conversations
                   </Text>
-                </Pressable>
-              ))}
+                </View>
+              ) : (
+                recentChats.map((c, idx) => (
+                  <Pressable
+                    key={c.id || c._id}
+                    onPress={() =>
+                      navigation.navigate("Chat", {
+                        screen: "ChatRoom",
+                        params: { chatId: c.id || c._id, name: c.name },
+                      })
+                    }
+                    android_ripple={{ color: "rgba(0,0,0,0.06)" }}
+                    style={({ pressed }) => ({
+                      paddingVertical: 12,
+                      paddingHorizontal: 12,
+                      borderRadius: 14,
+                      opacity: pressed ? 0.92 : 1,
+                      overflow: "hidden",
+                      backgroundColor: "white",
+                      borderWidth: 1,
+                      borderColor: "#eee",
+                      marginTop: idx === 0 ? 0 : 10,
+                    })}
+                  >
+                    <Text style={{ fontWeight: "900" }}>{c.name}</Text>
+                    <Text style={{ marginTop: 4, opacity: 0.75 }} numberOfLines={1}>
+                      {c.last || "Start a conversation"}
+                    </Text>
+                  </Pressable>
+                ))
+              )}
             </View>
           </View>
 

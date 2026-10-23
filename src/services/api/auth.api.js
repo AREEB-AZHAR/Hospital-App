@@ -8,4 +8,12 @@ export const authApi = {
   login(data) {
     return api.post("/auth/login", data);
   },
+
+  forgotPassword(phone) {
+    return api.post("/auth/forgot-password", { phone });
+  },
+
+  resetPassword({ phone, otp, newPassword }) {
+    return api.post("/auth/reset-password", { phone, otp, newPassword });
+  },
 };

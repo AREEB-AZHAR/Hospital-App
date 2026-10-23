@@ -145,7 +145,11 @@ export default function FindDoctorScreen({ navigation, route }) {
               onBook={() =>
                 navigation.navigate("Tabs", {
                   screen: "Book",
-                  params: { doctorId: item.id },
+                  params: {
+                    doctorId: item.id,
+                    doctorName: item.name,
+                    department: item.department,
+                  },
                 })
               }
             />

@@ -20,4 +20,12 @@ export const appointmentsApi = {
   // ✅ CANCEL (THIS IS THE FIX)
   cancel: (id) =>
     api.patch(`/appointments/${id}/cancel`),
+
+  // ✅ UPDATE PAYMENT
+  updatePayment: (id, paymentStatus = "paid") =>
+    api.patch(`/appointments/${id}/payment`, { paymentStatus }),
+
+  // ✅ UPDATE PRESCRIPTION NOTE
+  updateNote: (id, note) =>
+    api.patch(`/appointments/${id}/note`, { note }),
 };

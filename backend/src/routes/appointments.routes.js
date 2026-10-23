@@ -21,4 +21,10 @@ router.get("/today", requireAuth, requireRole("doctor", "admin"), c.doctorToday)
 // Status updates (reception/doctor/admin)
 router.patch("/:id/status", requireAuth, requireRole("reception", "doctor", "admin"), c.updateStatus);
 
+// Doctor: save prescription/note
+router.patch("/:id/note", requireAuth, requireRole("doctor"), c.updateNote);
+
+router.patch("/:id/payment", requireAuth, requireRole("reception", "admin"), c.updatePayment);
+
 module.exports = router;
+

@@ -10,19 +10,22 @@ import FindDoctorScreen from "../screens/tabs/FindDoctorScreen";
 import BookAppointmentScreen from "../screens/tabs/BookAppointmentScreen";
 import MyAppointmentScreen from "../screens/tabs/MyAppointmentScreen";
 import ProfileScreen from "../screens/tabs/ProfileScreen";
-import NotificationsScreen from "../screens/tabs/NotificationsScreen";
 
-// ✅ NEW: real reports screen
+// Admin
 import ReportsScreen from "../screens/admin/ReportsScreen";
-
-// Chat stack
-import ChatStack from "./ChatStack";
+import UsersScreen from "../screens/admin/UsersScreen";
+import SettingsScreen from "../screens/admin/SettingsScreen";
 
 // Role dashboards
 import PatientHomeScreen from "../screens/role/PatientHomeScreen";
 import ReceptionHomeScreen from "../screens/role/ReceptionHomeScreen";
 import DoctorHomeScreen from "../screens/role/DoctorHomeScreen";
 import AdminHomeScreen from "../screens/role/AdminHomeScreen";
+import PrescriptionsScreen from "../screens/role/PrescriptionsScreen";
+import PaymentsScreen from "../screens/role/PaymentsScreen";
+
+// Chat stack
+import ChatStack from "./ChatStack";
 
 const Tab = createBottomTabNavigator();
 
@@ -81,7 +84,7 @@ export default function AppTabs() {
         { name: "Dashboard", component: HomeForRole },
         { name: "Queue", component: MyAppointmentScreen },
         { name: "Chat", component: ChatStack },
-        { name: "Payments", component: NotificationsScreen },
+        { name: "Payments", component: PaymentsScreen },
         { name: "Profile", component: ProfileScreen },
       ];
     }
@@ -90,18 +93,18 @@ export default function AppTabs() {
       return [
         { name: "Dashboard", component: HomeForRole },
         { name: "Today", component: MyAppointmentScreen },
-        { name: "Prescriptions", component: NotificationsScreen },
+        { name: "Prescriptions", component: PrescriptionsScreen },
         { name: "Chat", component: ChatStack },
         { name: "Profile", component: ProfileScreen },
       ];
     }
 
-    // ✅ Admin
+    // Admin
     return [
       { name: "Dashboard", component: HomeForRole },
-      { name: "Users", component: NotificationsScreen }, // later
-      { name: "Reports", component: ReportsScreen },     // ✅ real now
-      { name: "Settings", component: NotificationsScreen }, // later
+      { name: "Users", component: UsersScreen },
+      { name: "Reports", component: ReportsScreen },
+      { name: "Settings", component: SettingsScreen },
       { name: "Profile", component: ProfileScreen },
     ];
   }, [role, HomeForRole]);
@@ -118,3 +121,4 @@ export default function AppTabs() {
     </Tab.Navigator>
   );
 }
+

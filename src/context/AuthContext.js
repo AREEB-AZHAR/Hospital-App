@@ -1,11 +1,8 @@
 import React, { createContext, useEffect, useMemo, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { api } from "../services/api/api"; // ✅ make sure this path matches your project
+import { api } from "../services/api/api";
+import { saveSession, getToken, clearSession } from "../services/storage";
 
 export const AuthContext = createContext(null);
-
-const TOKEN_KEY = "token";
-const USER_KEY = "user";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -21,40 +18,43 @@ export function AuthProvider({ children }) {
     };
   };
 
-  // ✅ Restore session on app start
   useEffect(() => {
     (async () => {
       try {
-        const storedUser = await AsyncStorage.getItem(USER_KEY);
-        if (storedUser) setUser(normalizeUser(JSON.parse(storedUser)));
-      } catch (e) {
-        // ignore
+        const token = await getToken();
+        if (!token) {
+          setUser(null);
+          return;
+        }
+
+        const me = await api.get("/users/me");
+        const normalized = normalizeUser(me);
+        await saveSession(token, normalized);
+        setUser(normalized);
+      } catch {
+        await clearSession();
+        setUser(null);
       } finally {
         setBooting(false);
       }
     })();
   }, []);
 
-  // ✅ LOGIN (MongoDB backend)
- const login = async (phone, password) => {
-  try {
-    const data = await api.post("/auth/login", {
-      phone: String(phone || "").trim(),
-      password: String(password || ""),
-    });
+  const login = async (phone, password) => {
+    try {
+      const data = await api.post("/auth/login", {
+        phone: String(phone || "").trim(),
+        password: String(password || ""),
+      });
 
-    if (data?.token) await AsyncStorage.setItem(TOKEN_KEY, data.token);
-    if (data?.user) await AsyncStorage.setItem(USER_KEY, JSON.stringify(data.user));
+      if (data?.token) await saveSession(data.token, data.user);
+      setUser(normalizeUser(data.user));
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, message: e?.message || "Login failed" };
+    }
+  };
 
-    setUser(normalizeUser(data.user));
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, message: e?.message || "Login failed" };
-  }
-};
-
-
-  // ✅ SIGNUP (MongoDB backend)
   const signup = async (newUser) => {
     try {
       const payload = {
@@ -62,15 +62,12 @@ export function AuthProvider({ children }) {
         email: String(newUser?.email || "").trim(),
         password: String(newUser?.password || ""),
         phone: String(newUser?.phone || "").trim(),
-        hospitalId: String(newUser?.id || "").trim(), // map your 'id' -> hospitalId in backend
-        role: String(newUser?.role || "patient").trim().toLowerCase(),
+        hospitalId: String(newUser?.id || "").trim(),
       };
 
       const data = await api.post("/auth/register", payload);
 
-      if (data?.token) await AsyncStorage.setItem(TOKEN_KEY, data.token);
-      if (data?.user) await AsyncStorage.setItem(USER_KEY, JSON.stringify(data.user));
-
+      if (data?.token) await saveSession(data.token, data.user);
       setUser(normalizeUser(data.user));
       return { ok: true };
     } catch (e) {
@@ -79,11 +76,9 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY]);
+    await clearSession();
     setUser(null);
   };
-
-  
 
   const value = useMemo(
     () => ({ user, booting, login, signup, logout }),
