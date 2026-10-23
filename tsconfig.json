@@ -6,8 +6,7 @@
   "include": [
     "src/**/*",
     "App.js",
-    "index.js",
-    "expo-env.d.ts"
+    "index.js"
   ],
   "exclude": [
     "node_modules",

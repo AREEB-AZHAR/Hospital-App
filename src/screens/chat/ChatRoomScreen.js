@@ -14,8 +14,13 @@ import {
   Image,
   Keyboard,
 } from "react-native";
-import { useHeaderHeight } from "@react-navigation/elements";
-import { Audio } from "expo-av";
+import {
+  AudioModule,
+  createAudioPlayer,
+  requestRecordingPermissionsAsync,
+  setAudioModeAsync,
+  RecordingPresets,
+} from "expo-audio";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { chatApi } from "../../services/api";
@@ -212,14 +217,13 @@ export default function ChatRoomScreen({ route }) {
     scrollToBottom(false);
     return () => {
       // cleanup sound
-      (async () => {
-        try {
-          if (soundRef.current) {
-            await soundRef.current.unloadAsync();
-            soundRef.current = null;
-          }
-        } catch {}
-      })();
+      try {
+        if (soundRef.current) {
+          soundRef.current.pause?.();
+          soundRef.current.remove?.();
+          soundRef.current = null;
+        }
+      } catch {}
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -368,22 +372,21 @@ export default function ChatRoomScreen({ route }) {
   const removePending = (index) =>
     setPendingFiles((prev) => prev.filter((_, i) => i !== index));
 
-  // ========= Voice Recording (Expo AV) =========
+  // ========= Voice Recording & Playback (Expo Audio) =========
   const ensureAudioReady = async () => {
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: true,
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: false,
-      shouldDuckAndroid: true,
-      playThroughEarpieceAndroid: false,
-    });
+    try {
+      await setAudioModeAsync({
+        allowsRecording: true,
+        playsInSilentMode: true,
+      });
+    } catch {}
   };
 
   const stopPlayback = async () => {
     try {
       if (soundRef.current) {
-        await soundRef.current.stopAsync();
-        await soundRef.current.unloadAsync();
+        soundRef.current.pause?.();
+        soundRef.current.remove?.();
         soundRef.current = null;
       }
     } catch {}
@@ -394,7 +397,7 @@ export default function ChatRoomScreen({ route }) {
 
   const startRecording = async () => {
     try {
-      const perm = await Audio.requestPermissionsAsync();
+      const perm = await requestRecordingPermissionsAsync();
       if (!perm.granted) {
         Alert.alert("Permission needed", "Microphone permission is required.");
         return;
@@ -404,15 +407,18 @@ export default function ChatRoomScreen({ route }) {
       await stopPlayback();
 
       setRecordMs(0);
-      const rec = new Audio.Recording();
+      const rec = new AudioModule.AudioRecorder(RecordingPresets?.HIGH_QUALITY || {});
       recordingRef.current = rec;
 
-      await rec.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
-      rec.setOnRecordingStatusUpdate((s) => {
-        if (s?.isRecording) setRecordMs(s.durationMillis ?? 0);
+      rec.addListener("recordingStatusUpdate", (s) => {
+        if (s?.isRecording) {
+          const ms = s.durationMillis ?? (s.currentTime ? Math.round(s.currentTime * 1000) : 0);
+          setRecordMs(ms);
+        }
       });
 
-      await rec.startAsync();
+      await rec.prepareToRecordAsync();
+      rec.record();
       setIsRecording(true);
     } catch (e) {
       setIsRecording(false);
@@ -427,8 +433,8 @@ export default function ChatRoomScreen({ route }) {
       if (!rec) return;
 
       setIsRecording(false);
-      await rec.stopAndUnloadAsync();
-      const uri = rec.getURI();
+      await rec.stop();
+      const uri = rec.uri;
       recordingRef.current = null;
 
       if (!uri) return;
@@ -461,19 +467,21 @@ export default function ChatRoomScreen({ route }) {
       await stopPlayback();
       await ensureAudioReady();
 
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: audioUri },
-        { shouldPlay: true },
-        (status) => {
-          if (!status?.isLoaded) return;
-          setPlayPosMs(status.positionMillis ?? 0);
-          setPlayDurMs(status.durationMillis ?? 0);
+      const player = createAudioPlayer(audioUri);
+      player.addListener("playbackStatusUpdate", (status) => {
+        if (!status) return;
+        const currentMs = status.currentTime ? Math.round(status.currentTime * 1000) : 0;
+        const durationMs = status.duration ? Math.round(status.duration * 1000) : 0;
+        setPlayPosMs(currentMs);
+        setPlayDurMs(durationMs);
 
-          if (status.didJustFinish) stopPlayback();
+        if (status.didJustFinish || (!status.playing && currentMs >= durationMs && durationMs > 0)) {
+          stopPlayback();
         }
-      );
+      });
 
-      soundRef.current = sound;
+      player.play();
+      soundRef.current = player;
       setPlayingMsgId(msgId);
     } catch (e) {
       Alert.alert("Playback error", String(e));
