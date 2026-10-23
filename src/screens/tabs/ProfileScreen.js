@@ -12,6 +12,15 @@ import {
 } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
 import { usersApi } from "../../services/api";
+import { colors, radii, shadows } from "../../theme";
+import {
+  UserIcon,
+  StethoscopeIcon,
+  HospitalBuildingIcon,
+  ShieldCheckIcon,
+  StarFilledIcon,
+  LogoutIcon,
+} from "../../components/icons";
 
 function LabeledInput({ label, value, onChangeText, keyboardType, editable = true, placeholder }) {
   return (
@@ -164,11 +173,12 @@ export default function ProfileScreen() {
         <View
           style={{
             alignItems: "center",
-            backgroundColor: "#111",
-            borderRadius: 24,
+            backgroundColor: colors.textPrimary,
+            borderRadius: radii.xl,
             paddingVertical: 32,
             paddingHorizontal: 20,
             marginBottom: 20,
+            ...shadows.card,
           }}
         >
           <View
@@ -176,27 +186,36 @@ export default function ProfileScreen() {
               width: 80,
               height: 80,
               borderRadius: 40,
-              backgroundColor: "#333",
+              backgroundColor: colors.primary,
               alignItems: "center",
               justifyContent: "center",
               marginBottom: 14,
+              borderWidth: 2,
+              borderColor: "rgba(255, 255, 255, 0.3)",
+              ...shadows.subtle,
             }}
           >
-            <Text style={{ fontSize: 34 }}>
-              {isDoctor ? "👨‍⚕️" : role === "admin" ? "🛡️" : role === "reception" ? "🏥" : "👤"}
-            </Text>
+            {isDoctor ? (
+              <StethoscopeIcon size={38} color={colors.white} strokeWidth={2.2} />
+            ) : role === "admin" ? (
+              <ShieldCheckIcon size={38} color={colors.white} strokeWidth={2.2} />
+            ) : role === "reception" ? (
+              <HospitalBuildingIcon size={38} color={colors.white} strokeWidth={2.2} />
+            ) : (
+              <UserIcon size={38} color={colors.white} strokeWidth={2.2} />
+            )}
           </View>
-          <Text style={{ fontSize: 20, fontWeight: "900", color: "white" }}>
+          <Text style={{ fontSize: 20, fontWeight: "900", color: colors.white }}>
             {profile?.name || authUser?.name || "—"}
           </Text>
-          <Text style={{ marginTop: 4, color: "#aaa", fontWeight: "700" }}>
+          <Text style={{ marginTop: 4, color: "rgba(255, 255, 255, 0.75)", fontWeight: "700" }}>
             {profile?.phone || authUser?.phone || "—"}
           </Text>
           <View style={{ marginTop: 8 }}>
             <RolePill role={role} />
           </View>
           {isDoctor && !!profile?.department && (
-            <Text style={{ marginTop: 8, color: "#ccc", fontWeight: "700" }}>
+            <Text style={{ marginTop: 8, color: "rgba(255, 255, 255, 0.85)", fontWeight: "700" }}>
               {profile.department}
               {profile.specialization ? ` • ${profile.specialization}` : ""}
             </Text>
@@ -207,24 +226,28 @@ export default function ProfileScreen() {
         {isDoctor && (
           <View style={{ flexDirection: "row", gap: 10, marginBottom: 20 }}>
             {[
-              { label: "Rating", value: `⭐ ${profile?.rating ?? 4.5}` },
-              { label: "Experience", value: `${profile?.experience ?? 5} yrs` },
-              { label: "Fee", value: `Rs ${profile?.fee ?? 1500}` },
+              { label: "Rating", value: `${profile?.rating ?? 4.8}`, icon: <StarFilledIcon size={14} color={colors.warning} /> },
+              { label: "Experience", value: `${profile?.experience ?? 5} yrs`, icon: null },
+              { label: "Fee", value: `Rs ${profile?.fee ?? 1500}`, icon: null },
             ].map((s) => (
               <View
                 key={s.label}
                 style={{
                   flex: 1,
-                  backgroundColor: "white",
-                  borderRadius: 14,
+                  backgroundColor: colors.surface,
+                  borderRadius: radii.lg,
                   padding: 12,
                   alignItems: "center",
                   borderWidth: 1,
-                  borderColor: "#eee",
+                  borderColor: colors.surfaceBorder,
+                  ...shadows.subtle,
                 }}
               >
-                <Text style={{ fontSize: 15, fontWeight: "900" }}>{s.value}</Text>
-                <Text style={{ marginTop: 4, fontSize: 11, color: "#888", fontWeight: "700" }}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  {s.icon ? <View style={{ marginRight: 4 }}>{s.icon}</View> : null}
+                  <Text style={{ fontSize: 15, fontWeight: "900", color: colors.textPrimary }}>{s.value}</Text>
+                </View>
+                <Text style={{ marginTop: 4, fontSize: 11, color: colors.textMuted, fontWeight: "700" }}>
                   {s.label}
                 </Text>
               </View>
@@ -342,19 +365,27 @@ export default function ProfileScreen() {
         {/* Logout */}
         <Pressable
           onPress={onLogout}
+          android_ripple={{ color: "rgba(239, 68, 68, 0.15)" }}
           style={({ pressed }) => ({
             marginTop: 20,
             borderWidth: 1,
-            borderColor: "#fee2e2",
-            backgroundColor: "#fff5f5",
-            borderRadius: 14,
+            borderColor: "#FECACA",
+            backgroundColor: colors.dangerLight,
+            borderRadius: radii.md,
             padding: 16,
+            flexDirection: "row",
             alignItems: "center",
+            justifyContent: "center",
             opacity: pressed ? 0.9 : 1,
+            transform: [{ scale: pressed ? 0.98 : 1 }],
             overflow: "hidden",
+            ...shadows.subtle,
           })}
         >
-          <Text style={{ fontWeight: "900", color: "#dc2626" }}>🚪  Logout</Text>
+          <LogoutIcon size={18} color={colors.danger} strokeWidth={2.2} />
+          <Text style={{ fontWeight: "800", color: colors.danger, marginLeft: 8, fontSize: 14 }}>
+            Sign Out
+          </Text>
         </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>

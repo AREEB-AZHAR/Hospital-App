@@ -24,6 +24,17 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { chatApi } from "../../services/api";
+import { colors, radii, shadows } from "../../theme";
+import {
+  PlusIcon,
+  MicrophoneIcon,
+  SendIcon,
+  PlayIcon,
+  StopIcon,
+  CloseIcon,
+  CheckDoubleIcon,
+  CheckIcon,
+} from "../../components/icons";
 
 
 
@@ -531,9 +542,11 @@ export default function ChatRoomScreen({ route }) {
         style={styles.audioPlayBtn}
         onPress={() => togglePlayAudio(msgId, a.url || a.uri)}
       >
-        <Text style={styles.audioPlayIcon}>
-          {isThisPlaying ? "⏹" : "▶"}
-        </Text>
+        {isThisPlaying ? (
+          <StopIcon size={14} color="#fff" />
+        ) : (
+          <PlayIcon size={14} color="#fff" style={{ marginLeft: 2 }} />
+        )}
       </TouchableOpacity>
 
       <View style={{ flex: 1 }}>
@@ -617,10 +630,15 @@ export default function ChatRoomScreen({ route }) {
                 {formatTime(item.createdAt)}
               </Text>
               {item.fromMe ? (
-                <Text style={[styles.metaText, styles.metaMe]}>
-                  {"  "}
-                  {item.status === "seen" ? "Seen" : item.status === "delivered" ? "Delivered" : "Sent"}
-                </Text>
+                <View style={{ marginLeft: 6, flexDirection: "row", alignItems: "center" }}>
+                  {item.status === "seen" ? (
+                    <CheckDoubleIcon size={13} color="#93C5FD" strokeWidth={2.4} />
+                  ) : item.status === "delivered" ? (
+                    <CheckDoubleIcon size={13} color="rgba(255,255,255,0.75)" strokeWidth={2.4} />
+                  ) : (
+                    <CheckIcon size={13} color="rgba(255,255,255,0.75)" strokeWidth={2.4} />
+                  )}
+                </View>
               ) : null}
             </View>
           </View>
@@ -703,7 +721,7 @@ export default function ChatRoomScreen({ route }) {
                   )}
 
                   <View style={styles.pendingX}>
-                    <Text style={styles.pendingXText}>×</Text>
+                    <CloseIcon size={10} color="#fff" strokeWidth={2.5} />
                   </View>
                 </TouchableOpacity>
               ))}
@@ -715,7 +733,7 @@ export default function ChatRoomScreen({ route }) {
         {/* Composer */}
         <View style={styles.composer}>
           <TouchableOpacity style={styles.iconBtn} onPress={onPressAttach} activeOpacity={0.85}>
-            <Text style={styles.iconText}>＋</Text>
+            <PlusIcon size={20} color={colors.primary} strokeWidth={2.4} />
           </TouchableOpacity>
 
           <TextInput
@@ -736,7 +754,11 @@ export default function ChatRoomScreen({ route }) {
             onPressOut={stopRecording}
             style={[styles.iconBtn, isRecording && styles.iconBtnRecording]}
           >
-            <Text style={styles.iconText}>{isRecording ? "●" : "🎤"}</Text>
+            {isRecording ? (
+              <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: colors.danger }} />
+            ) : (
+              <MicrophoneIcon size={20} color={colors.textSecondary} strokeWidth={2} />
+            )}
           </Pressable>
 
           <TouchableOpacity
@@ -745,7 +767,7 @@ export default function ChatRoomScreen({ route }) {
             activeOpacity={0.85}
             disabled={!canSend}
           >
-            <Text style={styles.sendText}>Send</Text>
+            <SendIcon size={16} color={colors.white} strokeWidth={2.4} />
           </TouchableOpacity>
         </View>
 
@@ -800,8 +822,8 @@ const styles = StyleSheet.create({
 
   input: { flex: 1, maxHeight: 120, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: "#f7f7f7", borderRadius: 12, color: "#111", borderWidth: 1, borderColor: "#eee" },
 
-  sendBtn: { paddingHorizontal: 14, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: "#1f6feb" },
-  sendBtnDisabled: { opacity: 0.5 },
+  sendBtn: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: colors.primary },
+  sendBtnDisabled: { opacity: 0.4, backgroundColor: colors.textLight },
   sendText: { color: "white", fontWeight: "800" },
 
   // attachments in message
