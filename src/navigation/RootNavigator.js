@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useRef } from "react";
-import { Animated } from "react-native";
+import React, { useContext } from "react";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
@@ -10,6 +10,7 @@ import DoctorDetailScreen from "../screens/tabs/DoctorDetailScreen";
 import PatientProfileScreen from "../screens/role/PatientProfileScreen";
 import BookAppointmentScreen from "../screens/tabs/BookAppointmentScreen";
 import DepartmentsScreen from "../screens/tabs/DepartmentsScreen";
+import { colors } from "../theme";
 
 const Stack = createNativeStackNavigator();
 
@@ -42,36 +43,28 @@ function AppStack() {
 }
 
 export default function RootNavigator() {
-  const { user } = useContext(AuthContext);
+  const { user, booting } = useContext(AuthContext);
 
-  const opacity = useRef(new Animated.Value(1)).current;
-  const translateY = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    opacity.setValue(0);
-    translateY.setValue(40);
-
-    Animated.parallel([
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 220,
-        useNativeDriver: true,
-      }),
-      Animated.spring(translateY, {
-        toValue: 0,
-        damping: 16,
-        stiffness: 180,
-        mass: 0.9,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [user, opacity, translateY]);
+  if (booting) {
+    return (
+      <View style={styles.bootingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <NavigationContainer>
-      <Animated.View style={{ flex: 1, opacity, transform: [{ translateY }] }}>
-        {user ? <AppStack /> : <AuthStack />}
-      </Animated.View>
+      {user ? <AppStack /> : <AuthStack />}
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  bootingContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
