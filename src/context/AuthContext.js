@@ -1,6 +1,6 @@
 import React, { createContext, useEffect, useMemo, useState } from "react";
 import { api } from "../services/api/api";
-import { saveSession, getToken, clearSession } from "../services/storage";
+import { saveSession, getToken, clearSession, getStoredUser } from "../services/storage";
 
 export const AuthContext = createContext(null);
 
@@ -19,25 +19,51 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
+    let unmounted = false;
     (async () => {
       try {
-        const token = await getToken();
+        const [token, storedUser] = await Promise.all([
+          getToken().catch(() => null),
+          getStoredUser().catch(() => null),
+        ]);
+
+        if (storedUser && !unmounted) {
+          setUser(normalizeUser(storedUser));
+        }
+
         if (!token) {
-          setUser(null);
+          if (!unmounted && !storedUser) setUser(null);
           return;
         }
 
-        const me = await api.get("/users/me");
-        const normalized = normalizeUser(me);
-        await saveSession(token, normalized);
-        setUser(normalized);
+        // Add 3.5s timeout so booting unblocks immediately even if API is slow or offline
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Boot timeout")), 3500)
+        );
+
+        try {
+          const me = await Promise.race([api.get("/users/me"), timeoutPromise]);
+          if (!unmounted && me) {
+            const normalized = normalizeUser(me);
+            await saveSession(token, normalized);
+            setUser(normalized);
+          }
+        } catch {
+          // If network fails or times out, keep storedUser if available
+          if (!storedUser && !unmounted) {
+            setUser(null);
+          }
+        }
       } catch {
-        await clearSession();
-        setUser(null);
+        if (!unmounted) setUser(null);
       } finally {
-        setBooting(false);
+        if (!unmounted) setBooting(false);
       }
     })();
+
+    return () => {
+      unmounted = true;
+    };
   }, []);
 
   const login = async (phone, password) => {
