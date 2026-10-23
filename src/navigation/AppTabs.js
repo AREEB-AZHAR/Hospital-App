@@ -1,7 +1,6 @@
 // src/navigation/AppTabs.js
-import React, { useCallback, useContext, useMemo, useRef } from "react";
-import { Animated, Platform, StyleSheet } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import React, { useContext, useMemo } from "react";
+import { Platform, StyleSheet } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { AuthContext } from "../context/AuthContext";
 import { colors, radii, shadows } from "../theme";
@@ -42,31 +41,6 @@ import PaymentsScreen from "../screens/role/PaymentsScreen";
 import ChatStack from "./ChatStack";
 
 const Tab = createBottomTabNavigator();
-
-function FadeOnFocus({ children }) {
-  const opacity = useRef(new Animated.Value(1)).current;
-
-  useFocusEffect(
-    useCallback(() => {
-      opacity.setValue(0);
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 180,
-        useNativeDriver: true,
-      }).start();
-    }, [opacity])
-  );
-
-  return <Animated.View style={{ flex: 1, opacity }}>{children}</Animated.View>;
-}
-
-function wrap(Screen) {
-  return (props) => (
-    <FadeOnFocus>
-      <Screen {...props} />
-    </FadeOnFocus>
-  );
-}
 
 function getTabIcon(tabName, focused, color) {
   const strokeWidth = focused ? 2.4 : 2;
@@ -176,7 +150,7 @@ export default function AppTabs() {
         <Tab.Screen
           key={t.name}
           name={t.name}
-          component={t.component === ChatStack ? t.component : wrap(t.component)}
+          component={t.component}
           options={{
             tabBarLabel: t.label || t.name,
             tabBarIcon: ({ color, focused }) => getTabIcon(t.name, focused, color),
