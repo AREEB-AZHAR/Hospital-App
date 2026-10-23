@@ -1,6 +1,6 @@
 # 🏥 Hospital Management & Telemedicine Mobile Platform
 
-A modern, full-stack hospital management and patient appointment mobile application built with **React Native (Expo SDK 54, React 19)**, **Node.js (Express 5)**, and **MongoDB (Mongoose 9)**.
+A modern, full-stack hospital management and patient appointment mobile application built with **React Native (Expo SDK 58, React Native 0.88, React 19.3)**, **Node.js (Express 5)**, and **MongoDB (Mongoose 9)**.
 
 ---
 
