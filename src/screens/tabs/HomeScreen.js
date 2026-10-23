@@ -10,6 +10,7 @@ import {
   Alert,
   StyleSheet,
   StatusBar,
+  Platform,
 } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
 import { AppDataContext } from "../../context/AppDataContext";
