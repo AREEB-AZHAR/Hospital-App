@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
 import { AppDataContext } from "../../context/AppDataContext";
+import { useTheme } from "../../context/ThemeContext";
 import { dummyDepartments } from "../../data/dummyDepartments";
 import { usersApi, appointmentsApi, chatApi } from "../../services/api";
 import { colors, radii, shadows, typography } from "../../theme";
@@ -31,6 +32,8 @@ import {
   ChevronRightIcon,
   ShieldCheckIcon,
   UserIcon,
+  MoonIcon,
+  SunIcon,
 } from "../../components/icons";
 import StatCard from "../../components/common/StatCard";
 import SoftButton from "../../components/common/SoftButton";
@@ -41,20 +44,26 @@ function getDoctorByName(name, doctors) {
 }
 
 function ActionCard({ title, subtitle, icon, iconBg, iconColor, onPress }) {
+  const { colors, shadows } = useTheme();
   return (
     <Pressable
       onPress={onPress}
-      android_ripple={{ color: "rgba(13, 110, 253, 0.08)" }}
+      android_ripple={{ color: colors.primaryLight }}
       style={({ pressed }) => [
         styles.actionCard,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.surfaceBorder,
+          ...shadows.subtle,
+        },
         pressed && styles.cardPressed,
       ]}
     >
       <View style={[styles.actionIconWrap, { backgroundColor: iconBg }]}>
         {icon}
       </View>
-      <Text style={styles.actionTitle}>{title}</Text>
-      <Text style={styles.actionSubtitle} numberOfLines={2}>
+      <Text style={[styles.actionTitle, { color: colors.textPrimary }]}>{title}</Text>
+      <Text style={[styles.actionSubtitle, { color: colors.textMuted }]} numberOfLines={2}>
         {subtitle}
       </Text>
     </Pressable>
@@ -81,6 +90,7 @@ function parseDateTime(dateStr, timeStr) {
 export default function HomeScreen({ navigation }) {
   const { user, logout } = useContext(AuthContext);
   const { labReports } = useContext(AppDataContext) || {};
+  const { colors, isDark, shadows, toggleTheme } = useTheme();
 
   const [q, setQ] = useState("");
   const [doctors, setDoctors] = useState([]);
@@ -216,7 +226,16 @@ export default function HomeScreen({ navigation }) {
       resizeMode="cover"
     >
       <StatusBar barStyle="light-content" translucent />
-      <View style={styles.darkOverlay}>
+      <View
+        style={[
+          styles.darkOverlay,
+          {
+            backgroundColor: isDark
+              ? "rgba(11, 15, 25, 0.92)"
+              : "rgba(15, 23, 42, 0.45)",
+          },
+        ]}
+      >
         <ScrollView
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.scrollContent}
@@ -225,7 +244,7 @@ export default function HomeScreen({ navigation }) {
           {/* Header Bar */}
           <View style={styles.header}>
             <View style={styles.headerUserRow}>
-              <View style={styles.avatarCircle}>
+              <View style={[styles.avatarCircle, { backgroundColor: colors.primary }]}>
                 <Text style={styles.avatarInitial}>
                   {(user?.name || "U")[0].toUpperCase()}
                 </Text>
@@ -243,17 +262,37 @@ export default function HomeScreen({ navigation }) {
               </View>
             </View>
 
-            <Pressable
-              onPress={logout}
-              android_ripple={{ color: "rgba(255,255,255,0.2)" }}
-              style={({ pressed }) => [
-                styles.logoutBtn,
-                pressed && { opacity: 0.8 },
-              ]}
-              accessibilityLabel="Logout"
-            >
-              <LogoutIcon size={18} color={colors.white} strokeWidth={2.2} />
-            </Pressable>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              {/* Theme Quick Toggle */}
+              <Pressable
+                onPress={toggleTheme}
+                android_ripple={{ color: "rgba(255,255,255,0.2)" }}
+                style={({ pressed }) => [
+                  styles.logoutBtn,
+                  pressed && { opacity: 0.8 },
+                ]}
+                accessibilityLabel="Toggle Dark/Light Mode"
+              >
+                {isDark ? (
+                  <SunIcon size={18} color="#FBBF24" strokeWidth={2.2} />
+                ) : (
+                  <MoonIcon size={18} color={colors.white} strokeWidth={2.2} />
+                )}
+              </Pressable>
+
+              {/* Logout Button */}
+              <Pressable
+                onPress={logout}
+                android_ripple={{ color: "rgba(255,255,255,0.2)" }}
+                style={({ pressed }) => [
+                  styles.logoutBtn,
+                  pressed && { opacity: 0.8 },
+                ]}
+                accessibilityLabel="Logout"
+              >
+                <LogoutIcon size={18} color={colors.white} strokeWidth={2.2} />
+              </Pressable>
+            </View>
           </View>
 
           {/* Quick Nav Chips */}
@@ -262,60 +301,93 @@ export default function HomeScreen({ navigation }) {
               onPress={() => navigation.navigate("Book")}
               style={({ pressed }) => [
                 styles.quickChip,
+                {
+                  backgroundColor: isDark ? colors.surface : colors.surfaceGlass,
+                  borderColor: colors.surfaceBorder,
+                  ...shadows.subtle,
+                },
                 pressed && styles.cardPressed,
               ]}
             >
               <CalendarIcon size={15} color={colors.primary} strokeWidth={2.2} />
-              <Text style={styles.quickChipText}>Book Visit</Text>
+              <Text style={[styles.quickChipText, { color: colors.textPrimary }]}>Book Visit</Text>
             </Pressable>
 
             <Pressable
               onPress={() => navigation.navigate("Appointments")}
               style={({ pressed }) => [
                 styles.quickChip,
+                {
+                  backgroundColor: isDark ? colors.surface : colors.surfaceGlass,
+                  borderColor: colors.surfaceBorder,
+                  ...shadows.subtle,
+                },
                 pressed && styles.cardPressed,
               ]}
             >
               <ClockIcon size={15} color={colors.accent} strokeWidth={2.2} />
-              <Text style={styles.quickChipText}>My Bookings</Text>
+              <Text style={[styles.quickChipText, { color: colors.textPrimary }]}>My Bookings</Text>
             </Pressable>
 
             <Pressable
               onPress={() => navigation.navigate("Chat")}
               style={({ pressed }) => [
                 styles.quickChip,
+                {
+                  backgroundColor: isDark ? colors.surface : colors.surfaceGlass,
+                  borderColor: colors.surfaceBorder,
+                  ...shadows.subtle,
+                },
                 pressed && styles.cardPressed,
               ]}
             >
               <ChatBubbleIcon size={15} color={colors.secondary} strokeWidth={2.2} />
-              <Text style={styles.quickChipText}>Chat Support</Text>
+              <Text style={[styles.quickChipText, { color: colors.textPrimary }]}>Chat Support</Text>
             </Pressable>
           </View>
 
           {/* Search Box */}
           <View style={styles.searchSection}>
-            <View style={styles.searchBar}>
+            <View
+              style={[
+                styles.searchBar,
+                {
+                  backgroundColor: isDark ? colors.surface : colors.surfaceGlass,
+                  borderColor: colors.surfaceBorder,
+                  ...shadows.subtle,
+                },
+              ]}
+            >
               <SearchIcon size={18} color={colors.textMuted} strokeWidth={2} />
               <TextInput
                 value={q}
                 onChangeText={setQ}
                 placeholder="Search doctors, departments, specialists…"
-                placeholderTextColor={colors.textLight}
-                style={styles.searchInput}
+                placeholderTextColor={colors.textMuted}
+                style={[styles.searchInput, { color: colors.textPrimary }]}
               />
               {q ? (
                 <Pressable onPress={() => setQ("")}>
-                  <Text style={styles.clearSearchText}>✕</Text>
+                  <Text style={[styles.clearSearchText, { color: colors.textMuted }]}>✕</Text>
                 </Pressable>
               ) : null}
             </View>
 
             {/* Dropdown search results */}
             {showDropdown ? (
-              <View style={styles.dropdownBox}>
+              <View
+                style={[
+                  styles.dropdownBox,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.surfaceBorder,
+                    ...shadows.card,
+                  },
+                ]}
+              >
                 {matchedDoctors.length > 0 ? (
                   <View>
-                    <Text style={styles.dropdownHeader}>Doctors</Text>
+                    <Text style={[styles.dropdownHeader, { color: colors.textMuted }]}>Doctors</Text>
                     {matchedDoctors.map((d) => (
                       <Pressable
                         key={d.id || d._id}
@@ -327,16 +399,23 @@ export default function HomeScreen({ navigation }) {
                         }}
                         style={({ pressed }) => [
                           styles.dropdownItem,
-                          pressed && styles.dropdownItemPressed,
+                          pressed && { backgroundColor: colors.surfaceSubtle },
                         ]}
                       >
                         <View style={styles.dropdownItemLeft}>
-                          <View style={styles.dropdownAvatar}>
+                          <View
+                            style={[
+                              styles.dropdownAvatar,
+                              { backgroundColor: colors.primaryLight },
+                            ]}
+                          >
                             <StethoscopeIcon size={14} color={colors.primary} />
                           </View>
                           <View>
-                            <Text style={styles.dropdownItemTitle}>{d.name}</Text>
-                            <Text style={styles.dropdownItemSub}>
+                            <Text style={[styles.dropdownItemTitle, { color: colors.textPrimary }]}>
+                              {d.name}
+                            </Text>
+                            <Text style={[styles.dropdownItemSub, { color: colors.textMuted }]}>
                               {d.department || "General"}
                             </Text>
                           </View>
@@ -349,7 +428,7 @@ export default function HomeScreen({ navigation }) {
 
                 {matchedDepts.length > 0 ? (
                   <View style={{ marginTop: matchedDoctors.length > 0 ? 12 : 0 }}>
-                    <Text style={styles.dropdownHeader}>Departments</Text>
+                    <Text style={[styles.dropdownHeader, { color: colors.textMuted }]}>Departments</Text>
                     {matchedDepts.map((dep) => (
                       <Pressable
                         key={dep.id}
@@ -361,16 +440,25 @@ export default function HomeScreen({ navigation }) {
                         }}
                         style={({ pressed }) => [
                           styles.dropdownItem,
-                          pressed && styles.dropdownItemPressed,
+                          pressed && { backgroundColor: colors.surfaceSubtle },
                         ]}
                       >
                         <View style={styles.dropdownItemLeft}>
-                          <View style={styles.dropdownAvatar}>
+                          <View
+                            style={[
+                              styles.dropdownAvatar,
+                              { backgroundColor: colors.secondaryLight },
+                            ]}
+                          >
                             <HospitalBuildingIcon size={14} color={colors.secondary} />
                           </View>
                           <View>
-                            <Text style={styles.dropdownItemTitle}>{dep.name}</Text>
-                            <Text style={styles.dropdownItemSub}>{dep.desc}</Text>
+                            <Text style={[styles.dropdownItemTitle, { color: colors.textPrimary }]}>
+                              {dep.name}
+                            </Text>
+                            <Text style={[styles.dropdownItemSub, { color: colors.textMuted }]}>
+                              {dep.desc}
+                            </Text>
                           </View>
                         </View>
                         <ChevronRightIcon size={16} color={colors.textMuted} />
@@ -383,11 +471,20 @@ export default function HomeScreen({ navigation }) {
           </View>
 
           {/* Next Appointment Card */}
-          <View style={styles.nextCard}>
+          <View
+            style={[
+              styles.nextCard,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.surfaceBorder,
+                ...shadows.card,
+              },
+            ]}
+          >
             <View style={styles.cardHeaderRow}>
               <View style={styles.cardBadgeRow}>
-                <View style={styles.pulseDot} />
-                <Text style={styles.cardBadgeText}>NEXT APPOINTMENT</Text>
+                <View style={[styles.pulseDot, { backgroundColor: colors.accent }]} />
+                <Text style={[styles.cardBadgeText, { color: colors.textMuted }]}>NEXT APPOINTMENT</Text>
               </View>
 
               <Pressable
@@ -397,20 +494,20 @@ export default function HomeScreen({ navigation }) {
                   pressed && { opacity: 0.7 },
                 ]}
               >
-                <Text style={styles.viewAllText}>View all</Text>
+                <Text style={[styles.viewAllText, { color: colors.primary }]}>View all</Text>
                 <ChevronRightIcon size={14} color={colors.primary} />
               </Pressable>
             </View>
 
             {!nextAppointment ? (
               <View style={styles.emptyApptBox}>
-                <View style={styles.emptyIconCircle}>
+                <View style={[styles.emptyIconCircle, { backgroundColor: colors.primaryLight }]}>
                   <CalendarIcon size={26} color={colors.primary} strokeWidth={2} />
                 </View>
-                <Text style={styles.emptyApptTitle}>
+                <Text style={[styles.emptyApptTitle, { color: colors.textPrimary }]}>
                   No Upcoming Consultations
                 </Text>
-                <Text style={styles.emptyApptSub}>
+                <Text style={[styles.emptyApptSub, { color: colors.textSecondary }]}>
                   Find verified doctors and schedule an in-clinic or teleconsultation today.
                 </Text>
 
@@ -419,6 +516,7 @@ export default function HomeScreen({ navigation }) {
                   android_ripple={{ color: "rgba(255,255,255,0.2)" }}
                   style={({ pressed }) => [
                     styles.primaryActionBtn,
+                    { backgroundColor: colors.primary },
                     pressed && styles.cardPressed,
                   ]}
                 >
@@ -429,15 +527,23 @@ export default function HomeScreen({ navigation }) {
             ) : (
               <View style={styles.apptDetailsBox}>
                 <View style={styles.apptDocHeader}>
-                  <View style={styles.docAvatarCircle}>
-                    <Text style={styles.docAvatarInitial}>
+                  <View
+                    style={[
+                      styles.docAvatarCircle,
+                      {
+                        backgroundColor: colors.primaryLight,
+                        borderColor: isDark ? colors.surfaceBorder : "#BFDBFE",
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.docAvatarInitial, { color: colors.primary }]}>
                       {(nextAppointment.doctorName || "D")[0].toUpperCase()}
                     </Text>
                   </View>
 
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <View style={{ flexDirection: "row", alignItems: "center" }}>
-                      <Text style={styles.apptDocName}>
+                      <Text style={[styles.apptDocName, { color: colors.textPrimary }]}>
                         {nextAppointment.doctorName}
                       </Text>
                       <View style={{ marginLeft: 6 }}>
@@ -445,17 +551,17 @@ export default function HomeScreen({ navigation }) {
                       </View>
                     </View>
 
-                    <Text style={styles.apptDeptText}>
+                    <Text style={[styles.apptDeptText, { color: colors.textMuted }]}>
                       {nextAppointment.department || "General Practice"}
                     </Text>
 
                     {nextDoc ? (
                       <View style={styles.apptRatingRow}>
                         <StarFilledIcon size={13} color={colors.warning} />
-                        <Text style={styles.apptRatingText}>
+                        <Text style={[styles.apptRatingText, { color: colors.textPrimary }]}>
                           {nextDoc.rating || "4.8"}
                         </Text>
-                        <Text style={styles.apptFeeText}>
+                        <Text style={[styles.apptFeeText, { color: colors.textMuted }]}>
                           • Rs {nextDoc.fee || "1,500"}
                         </Text>
                       </View>
@@ -466,15 +572,19 @@ export default function HomeScreen({ navigation }) {
                 </View>
 
                 {/* Date & Time Pills */}
-                <View style={styles.scheduleRow}>
-                  <View style={styles.scheduleChip}>
+                <View style={[styles.scheduleRow, { borderTopColor: colors.surfaceBorder }]}>
+                  <View style={[styles.scheduleChip, { backgroundColor: colors.surfaceSubtle }]}>
                     <CalendarIcon size={14} color={colors.primary} strokeWidth={2} />
-                    <Text style={styles.scheduleText}>{nextAppointment.date}</Text>
+                    <Text style={[styles.scheduleText, { color: colors.textPrimary }]}>
+                      {nextAppointment.date}
+                    </Text>
                   </View>
 
-                  <View style={styles.scheduleChip}>
+                  <View style={[styles.scheduleChip, { backgroundColor: colors.surfaceSubtle }]}>
                     <ClockIcon size={14} color={colors.accent} strokeWidth={2} />
-                    <Text style={styles.scheduleText}>{nextAppointment.time}</Text>
+                    <Text style={[styles.scheduleText, { color: colors.textPrimary }]}>
+                      {nextAppointment.time}
+                    </Text>
                   </View>
                 </View>
 
@@ -572,9 +682,20 @@ export default function HomeScreen({ navigation }) {
           </View>
 
           {/* Section: Recent Consultations */}
-          <View style={styles.recentChatCard}>
+          <View
+            style={[
+              styles.recentChatCard,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.surfaceBorder,
+                ...shadows.subtle,
+              },
+            ]}
+          >
             <View style={styles.cardHeaderRow}>
-              <Text style={styles.sectionInnerTitle}>Recent Consultations</Text>
+              <Text style={[styles.sectionInnerTitle, { color: colors.textPrimary }]}>
+                Recent Consultations
+              </Text>
               <Pressable
                 onPress={() => navigation.navigate("Chat")}
                 style={({ pressed }) => [
@@ -582,14 +703,22 @@ export default function HomeScreen({ navigation }) {
                   pressed && { opacity: 0.7 },
                 ]}
               >
-                <Text style={styles.viewAllText}>Open inbox</Text>
+                <Text style={[styles.viewAllText, { color: colors.primary }]}>Open inbox</Text>
                 <ChevronRightIcon size={14} color={colors.primary} />
               </Pressable>
             </View>
 
             {recentChats.length === 0 ? (
-              <View style={styles.emptyChatsBox}>
-                <Text style={styles.emptyChatsText}>
+              <View
+                style={[
+                  styles.emptyChatsBox,
+                  {
+                    backgroundColor: isDark ? colors.surfaceSubtle : "transparent",
+                    borderRadius: radii.md,
+                  },
+                ]}
+              >
+                <Text style={[styles.emptyChatsText, { color: colors.textMuted }]}>
                   No active conversations. Connect with a clinic doctor or reception anytime.
                 </Text>
               </View>
@@ -603,25 +732,31 @@ export default function HomeScreen({ navigation }) {
                       params: { chatId: c.id || c._id, name: c.name },
                     })
                   }
-                  android_ripple={{ color: "rgba(13, 110, 253, 0.08)" }}
+                  android_ripple={{ color: colors.primaryLight }}
                   style={({ pressed }) => [
                     styles.chatRow,
+                    { backgroundColor: colors.surfaceSubtle },
                     idx !== 0 && { marginTop: 8 },
                     pressed && styles.cardPressed,
                   ]}
                 >
-                  <View style={styles.chatAvatar}>
-                    <Text style={styles.chatAvatarText}>
+                  <View
+                    style={[
+                      styles.chatAvatar,
+                      { backgroundColor: colors.secondaryLight },
+                    ]}
+                  >
+                    <Text style={[styles.chatAvatarText, { color: colors.secondary }]}>
                       {(c.name || "D")[0].toUpperCase()}
                     </Text>
                   </View>
                   <View style={{ flex: 1, marginLeft: 10 }}>
-                    <Text style={styles.chatName}>{c.name}</Text>
-                    <Text style={styles.chatSnippet} numberOfLines={1}>
+                    <Text style={[styles.chatName, { color: colors.textPrimary }]}>{c.name}</Text>
+                    <Text style={[styles.chatSnippet, { color: colors.textMuted }]} numberOfLines={1}>
                       {c.last || "Tap to continue discussion"}
                     </Text>
                   </View>
-                  <ChevronRightIcon size={16} color={colors.textLight} />
+                  <ChevronRightIcon size={16} color={colors.textMuted} />
                 </Pressable>
               ))
             )}
@@ -630,19 +765,29 @@ export default function HomeScreen({ navigation }) {
           {/* Departments Directory Shortcut */}
           <Pressable
             onPress={() => navigation.navigate("Departments")}
-            android_ripple={{ color: "rgba(13, 110, 253, 0.08)" }}
+            android_ripple={{ color: colors.primaryLight }}
             style={({ pressed }) => [
               styles.deptBanner,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.surfaceBorder,
+                ...shadows.subtle,
+              },
               pressed && styles.cardPressed,
             ]}
           >
             <View style={styles.deptBannerLeft}>
-              <View style={styles.deptBannerIconWrap}>
+              <View
+                style={[
+                  styles.deptBannerIconWrap,
+                  { backgroundColor: colors.primaryLight },
+                ]}
+              >
                 <HospitalBuildingIcon size={24} color={colors.primary} strokeWidth={2} />
               </View>
               <View style={{ marginLeft: 14 }}>
-                <Text style={styles.deptBannerTitle}>Hospital Departments</Text>
-                <Text style={styles.deptBannerSub}>
+                <Text style={[styles.deptBannerTitle, { color: colors.textPrimary }]}>Hospital Departments</Text>
+                <Text style={[styles.deptBannerSub, { color: colors.textMuted }]}>
                   Cardiology, ENT, Pediatrics, Neurology, Orthopedics
                 </Text>
               </View>
@@ -651,12 +796,32 @@ export default function HomeScreen({ navigation }) {
           </Pressable>
 
           {/* Health Tip */}
-          <View style={styles.healthTipCard}>
+          <View
+            style={[
+              styles.healthTipCard,
+              {
+                backgroundColor: isDark ? "rgba(16, 185, 129, 0.12)" : "#F0FDF4",
+                borderColor: isDark ? "rgba(16, 185, 129, 0.25)" : "#BBF7D0",
+              },
+            ]}
+          >
             <View style={styles.healthTipHeader}>
               <ShieldCheckIcon size={18} color={colors.accent} />
-              <Text style={styles.healthTipTitle}>Clinical Health Advisory</Text>
+              <Text
+                style={[
+                  styles.healthTipTitle,
+                  { color: isDark ? "#34D399" : "#166534" },
+                ]}
+              >
+                Clinical Health Advisory
+              </Text>
             </View>
-            <Text style={styles.healthTipBody}>
+            <Text
+              style={[
+                styles.healthTipBody,
+                { color: isDark ? "#A7F3D0" : "#15803D" },
+              ]}
+            >
               Remember to maintain routine vitals checkups and stay hydrated. You can attach previous laboratory files and audio questions in chat for quick doctor review.
             </Text>
           </View>

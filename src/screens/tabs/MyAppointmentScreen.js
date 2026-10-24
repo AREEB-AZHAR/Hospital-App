@@ -45,7 +45,7 @@ function CardWrap({ children }) {
 
 export default function MyAppointmentScreen() {
   const { user } = useContext(AuthContext);
-  const { colors, isDark } = useTheme();
+  const { colors, isDark, shadows } = useTheme();
   const role = String(user?.role || "patient").trim().toLowerCase();
 
   const isReception = role === "reception" || role === "receptionist";

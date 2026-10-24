@@ -45,9 +45,15 @@ The mobile platform now features a **persistent Dark Mode theme system** and a *
   - Zero-friction testing: instant "Fill Demo Patient" and "Fill Demo Doctor" one-tap buttons on the authentication screen.
   - Automatic doctor & demo patient seeding on backend startup (`seedUsers.js`).
 
-- ⚡ **Module Boot & React Navigation 7 Theme Fix (`RootNavigator.js`)**:
+- ⚡ **Module Boot & React Navigation 7 Theme Fix (`RootNavigator.js` & `MyAppointmentScreen.js`)**:
   - Resolved `TypeError: Cannot read property 'regular' of undefined` by inheriting and spreading `DefaultTheme` / `DarkTheme` fonts required by React Navigation 7 stack navigators.
-  - Eliminated un-scoped StyleSheet references to guarantee error-free initial bootstrapping and instant rendering on physical devices.
+  - Fixed `ReferenceError: Property 'shadows' doesn't exist` in `MyAppointmentScreen.js` by destructuring `shadows` from `useTheme()`.
+  - Ran comprehensive AST global scope validation across all JavaScript files in `src/` to confirm zero undeclared identifiers.
+
+- 🌓 **Comprehensive Full-Screen Theme Reactivity (`HomeScreen.js`, `FindDoctorScreen.js`, `DepartmentsScreen.js`, `BookAppointmentScreen.js`)**:
+  - **Dynamic Card & Tile Theming**: Converted all static theme references to dynamic context hook (`useTheme()`). All doctor cards, quick nav chips, search inputs, dropdown menus, appointment hero boxes, consultation rows, department banners, and health tip advisories re-render instantly on theme change without requiring an app reload.
+  - **1-Tap Header Theme Toggle**: Embedded a responsive, ergonomic `MoonIcon` / `SunIcon` toggle right on the `HomeScreen.js` header alongside the logout button, providing immediate one-touch switching between clinical light mode and obsidian dark mode.
+  - **Adaptive Contrast & Elevation**: Elevated cards use `#131B2E` with subtle dark borders (`#1E293B`) and glow-adjusted shadows (`darkShadows`) to guarantee high contrast and zero eye fatigue during evening teleconsultations.
 
 ---
 

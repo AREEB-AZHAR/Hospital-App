@@ -1,23 +1,36 @@
 // src/components/common/StatCard.js
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { colors, radii, shadows } from "../../theme";
+import { useTheme } from "../../context/ThemeContext";
+import { radii } from "../../theme";
 
-export default function StatCard({ label, value, hint, icon, color = colors.primary }) {
+export default function StatCard({ label, value, hint, icon, color }) {
+  const { colors, shadows } = useTheme();
+  const activeColor = color || colors.primary;
+
   return (
-    <View style={styles.card}>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.surfaceBorder,
+          ...shadows.subtle,
+        },
+      ]}
+    >
       <View style={styles.headerRow}>
-        <Text style={styles.label}>{label}</Text>
+        <Text style={[styles.label, { color: colors.textMuted }]}>{label}</Text>
         {icon ? (
-          <View style={[styles.iconWrap, { backgroundColor: `${color}15` }]}>
+          <View style={[styles.iconWrap, { backgroundColor: `${activeColor}20` }]}>
             {icon}
           </View>
         ) : null}
       </View>
 
-      <Text style={[styles.value, { color }]}>{value}</Text>
+      <Text style={[styles.value, { color: activeColor }]}>{value}</Text>
 
-      {!!hint && <Text style={styles.hint}>{hint}</Text>}
+      {!!hint && <Text style={[styles.hint, { color: colors.textSecondary }]}>{hint}</Text>}
     </View>
   );
 }
@@ -25,12 +38,9 @@ export default function StatCard({ label, value, hint, icon, color = colors.prim
 const styles = StyleSheet.create({
   card: {
     flex: 1,
-    backgroundColor: colors.surface,
     borderRadius: radii.lg,
     borderWidth: 1,
-    borderColor: colors.surfaceBorder,
     padding: 16,
-    ...shadows.subtle,
   },
   headerRow: {
     flexDirection: "row",
@@ -38,7 +48,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   label: {
-    color: colors.textMuted,
     fontWeight: "700",
     fontSize: 13,
   },
@@ -57,8 +66,8 @@ const styles = StyleSheet.create({
   },
   hint: {
     marginTop: 4,
-    color: colors.textSecondary,
     fontWeight: "600",
     fontSize: 12,
   },
 });
+
