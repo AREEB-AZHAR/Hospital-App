@@ -45,8 +45,9 @@ The mobile platform now features a **persistent Dark Mode theme system** and a *
   - Zero-friction testing: instant "Fill Demo Patient" and "Fill Demo Doctor" one-tap buttons on the authentication screen.
   - Automatic doctor & demo patient seeding on backend startup (`seedUsers.js`).
 
-- ⚡ **Module Boot & Navigation Theme Fix (`RootNavigator.js`)**:
-  - Resolved an un-scoped StyleSheet reference on initial load to ensure instant app bootstrapping and prevent blank bundle evaluation states on physical devices.
+- ⚡ **Module Boot & React Navigation 7 Theme Fix (`RootNavigator.js`)**:
+  - Resolved `TypeError: Cannot read property 'regular' of undefined` by inheriting and spreading `DefaultTheme` / `DarkTheme` fonts required by React Navigation 7 stack navigators.
+  - Eliminated un-scoped StyleSheet references to guarantee error-free initial bootstrapping and instant rendering on physical devices.
 
 ---
 
