@@ -45,6 +45,9 @@ The mobile platform now features a **persistent Dark Mode theme system** and a *
   - Zero-friction testing: instant "Fill Demo Patient" and "Fill Demo Doctor" one-tap buttons on the authentication screen.
   - Automatic doctor & demo patient seeding on backend startup (`seedUsers.js`).
 
+- ⚡ **Module Boot & Navigation Theme Fix (`RootNavigator.js`)**:
+  - Resolved an un-scoped StyleSheet reference on initial load to ensure instant app bootstrapping and prevent blank bundle evaluation states on physical devices.
+
 ---
 
 ## 🔑 Ready-to-Test Demo Accounts

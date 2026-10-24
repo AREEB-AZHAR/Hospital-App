@@ -85,7 +85,6 @@ export default function RootNavigator() {
 const styles = StyleSheet.create({
   bootingContainer: {
     flex: 1,
-    backgroundColor: colors.background,
     alignItems: "center",
     justifyContent: "center",
   },
