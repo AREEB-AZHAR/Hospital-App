@@ -4,28 +4,41 @@ A modern, full-stack hospital management and patient appointment mobile applicat
 
 ---
 
-## 🌟 Recent Updates: Aesthetic UI/UX Overhaul & Custom SVG Icon Suite
+## 🌟 Recent Updates: Dark Mode Engine & Aesthetic Custom SVG Suite
 
-The mobile interface has been upgraded with a **clinical design system** and a **handcrafted SVG vector icon library** using `react-native-svg`:
+The mobile platform now features a **persistent Dark Mode theme system** and a **handcrafted SVG vector icon library** designed specifically for high-contrast healthcare applications:
 
-- 🎨 **Cohesive Medical Design System (`src/theme/`)**:
-  - **Color Palette**: Clinical Royal Blue (`#0D6EFD`), Crisp Cyan (`#00B4D8`), Mint Emerald (`#10B981`), Warning Amber (`#F59E0B`), and Alert Coral (`#EF4444`) on Slate Neutral backgrounds (`#F8FAFC`).
-  - **Standardized Typography & Spacing Tokens**: Consistent type scales, soft multi-layer shadow elevations, and ergonomic corner radii.
-- ⚡ **Handcrafted Custom SVG Icon Library (`src/components/icons/`)**:
-  - Replaced all raw unicode emojis (`👨‍⚕️`, `📅`, `🧾`, `💬`, `⭐`, `💳`, `🚪`) with over 25 scalable, stroke-based vector icons (`HomeIcon`, `StethoscopeIcon`, `CalendarIcon`, `ChatBubbleIcon`, `UserIcon`, `HospitalBuildingIcon`, `PillIcon`, `PrescriptionIcon`, `ReportHeartIcon`, `MicrophoneIcon`, `SendIcon`, `PlayIcon`, `StopIcon`, `StarFilledIcon`, `ClockIcon`, `ShieldCheckIcon`, `CreditCardIcon`, `ChevronRightIcon`, etc.).
+- 🌙 **Persistent Dark Mode Engine (`src/context/ThemeContext.js` & `src/theme/`)**:
+  - **Medical Obsidian & Midnight Navy Palette**: Deep dark background (`#0B0F19`), elevated card surfaces (`#131B2E`), electric royal blue accents (`#3B82F6`), mint emerald (`#10B981`), and crisp typography (`#F8FAFC`).
+  - **Persistent Storage**: Theme preference (`light`, `dark`, `system`) is stored in `@react-native-async-storage/async-storage` under key `@hospital_app_theme_mode` and persists across app restarts.
+  - **Dynamic System Adaptation**: Automatically synchronizes with OS dark mode preference via `useColorScheme()` as a default baseline.
+  - **Interactive Appearance Toggle Card (`ProfileScreen.js`)**: An ergonomic **Appearance** card with a smooth switch, live state indicator, and custom SVG icons (`MoonIcon`, `SunIcon`).
+  - **Navigation & Status Bar Synchronization**: `RootNavigator.js` dynamically syncs `NavigationContainer` theme tokens and OS `StatusBar` (`light-content` vs `dark-content`). `AppTabs.js` dynamically adjusts tab bar surface, borders, and header colors.
+  - **Universal Reactive Components**: Core controls (`SoftButton`, `TabChip`, `ProfileScreen`, `MyAppointmentScreen`, `ChatListScreen`) instantly re-render with dark-mode contrasts.
+
+- 🎨 **Cohesive Medical Design System (`src/theme/index.js`)**:
+  - **Dual Token Palettes**: Full token exports for `lightColors`, `darkColors`, `lightShadows`, and `darkShadows`, alongside backward-compatible defaults.
+  - **Standardized Typography & Radii**: Harmonious scales with ergonomic corner radii (`radii.md`, `radii.lg`, `radii.xl`, `radii.full`).
+
+- ⚡ **Handcrafted Custom SVG Icon Library (`src/components/icons/index.js`)**:
+  - Replaced raw unicode emojis with over 28 scalable, stroke-based vector icons (`HomeIcon`, `StethoscopeIcon`, `CalendarIcon`, `ChatBubbleIcon`, `UserIcon`, `HospitalBuildingIcon`, `PillIcon`, `PrescriptionIcon`, `ReportHeartIcon`, `MicrophoneIcon`, `SendIcon`, `PlayIcon`, `StopIcon`, `StarFilledIcon`, `ClockIcon`, `ShieldCheckIcon`, `CreditCardIcon`, `ChevronRightIcon`, `MoonIcon`, `SunIcon`, `EditIcon`, `CheckIcon`, etc.).
+
 - 📱 **Sleek Bottom Tab Navigation & Safe Area Adaptability (`AppTabs.js`)**:
   - Custom SVG tab icons with active state tinting and stroke emphasis.
   - Dynamically adapts height and bottom padding via `useSafeAreaInsets()` to prevent overlap with Android 3-button system bars and gesture handles.
   - Generous `paddingBottom: 120` clearance applied across all screens so action buttons ("Confirm Booking", "Sign Out", "Discard") are never covered by navigation bars.
+
 - 📅 **Live Appointment Synchronization & Filter Tabs (`HomeScreen.js` & `MyAppointmentScreen.js`)**:
   - `useFocusEffect` integration ensures appointment and doctor lists refresh immediately when switching tabs.
   - Dedicated patient tabs: **Upcoming** (including active and pending requests), **All**, and **History**.
   - Immediate reflection of new bookings on the Next Appointment hero card.
-- 💬 **Enhanced Telemedicine Chat (`ChatRoomScreen.js`)**:
+
+- 💬 **Enhanced Telemedicine Chat (`ChatRoomScreen.js` & `ChatListScreen.js`)**:
   - Custom SVG audio playback controls (`PlayIcon`, `StopIcon`) with dynamic waveform track.
   - Media composer equipped with SVG Attachment (`+`), Microphone (`mic`), and Send vector buttons.
   - Visual read receipts with SVG single and double checkmarks (`CheckIcon`, `CheckDoubleIcon`).
   - Bulletproof keyboard handling with safe navigation header offset.
+
 - 🛡️ **Session Self-Healing & Automated Token Refresh (`api.js` & `AuthContext.js`)**:
   - Transparent access token refreshing via refresh tokens on 401 responses.
   - Graceful token expiration handling: auto-clears expired or invalidated tokens when backend restarts and smoothly returns to the login screen instead of throwing unhandled exceptions.
@@ -220,10 +233,10 @@ npm start
 > **To contribute real screenshots:**
 > Capture screenshots of the upgraded views and place them in `assets/screenshots/`:
 > 1. **HomeScreen**: Dashboard with custom SVG icon cards, Next Appointment hero, and stats.
-> 2. **Bottom Navigation**: Floating tab bar showing custom SVG vector icons.
+> 2. **Bottom Navigation**: Floating tab bar showing custom SVG vector icons in light and dark mode.
 > 3. **FindDoctorScreen**: Verified doctors with ratings, fee chips, and booking buttons.
 > 4. **ChatRoomScreen**: Media composer with SVG microphone, attachments, and waveform audio playback.
-> 5. **ProfileScreen**: User credentials with role badges and sign-out controls.
+> 5. **ProfileScreen (Light & Dark Appearance)**: User credentials, role badges, and the interactive **Appearance** switch in both Obsidian Dark and Daylight modes.
 
 ---
 

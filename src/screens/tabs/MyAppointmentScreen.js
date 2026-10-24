@@ -2,16 +2,18 @@ import React, { useContext, useMemo, useState, useEffect, useCallback } from "re
 import { View, Text, ScrollView, Alert } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { AuthContext } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import { appointmentsApi } from "../../services/api";
 
 import StatusPill from "../../components/common/StatusPill";
 import SoftButton from "../../components/common/SoftButton";
 import TabChip from "../../components/common/TabChip";
 import { normalizeDate, safeText } from "../../utils/helpers";
-import { colors, radii, shadows } from "../../theme";
+import { radii } from "../../theme";
 import { CalendarIcon, ClockIcon, StethoscopeIcon, UserIcon } from "../../components/icons";
 
 function SectionTitle({ title, count }) {
+  const { colors } = useTheme();
   return (
     <View style={{ marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
       <Text style={{ fontSize: 15, fontWeight: "900", color: colors.textPrimary }}>{title}</Text>
@@ -23,6 +25,7 @@ function SectionTitle({ title, count }) {
 }
 
 function CardWrap({ children }) {
+  const { colors, shadows } = useTheme();
   return (
     <View
       style={{
@@ -42,6 +45,7 @@ function CardWrap({ children }) {
 
 export default function MyAppointmentScreen() {
   const { user } = useContext(AuthContext);
+  const { colors, isDark } = useTheme();
   const role = String(user?.role || "patient").trim().toLowerCase();
 
   const isReception = role === "reception" || role === "receptionist";
@@ -175,11 +179,11 @@ export default function MyAppointmentScreen() {
 
     return (
       <CardWrap key={id}>
-        <Text style={{ fontWeight: "900", color: "#111" }}>
+        <Text style={{ fontWeight: "900", color: colors.textPrimary }}>
           {safeText(a.time)} • {safeText(a.patientName || a.patient?.name || "Patient")}
         </Text>
 
-        <Text style={{ marginTop: 4, opacity: 0.75 }} numberOfLines={1}>
+        <Text style={{ marginTop: 4, color: colors.textMuted }} numberOfLines={1}>
           {safeText(a.department?.name || a.department || "Department")}
         </Text>
 
@@ -247,7 +251,17 @@ export default function MyAppointmentScreen() {
       <CardWrap key={id}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
-            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primaryLight, alignItems: "center", justifyContent: "center", marginRight: 10 }}>
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: isDark ? "rgba(59, 130, 246, 0.2)" : colors.primaryLight,
+                alignItems: "center",
+                justifyContent: "center",
+                marginRight: 10,
+              }}
+            >
               {isReception || isAdmin ? (
                 <UserIcon size={20} color={colors.primary} />
               ) : (
@@ -316,12 +330,15 @@ export default function MyAppointmentScreen() {
   }, [appointments]);
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
+    <ScrollView
+      style={{ backgroundColor: colors.background }}
+      contentContainerStyle={{ padding: 16, paddingBottom: 120, backgroundColor: colors.background }}
+    >
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 18, fontWeight: "900", color: "#111" }}>{title}</Text>
+          <Text style={{ fontSize: 18, fontWeight: "900", color: colors.textPrimary }}>{title}</Text>
           {(isReception || isAdmin) && (
-            <Text style={{ marginTop: 4, color: "#666", fontWeight: "700" }}>
+            <Text style={{ marginTop: 4, color: colors.textMuted, fontWeight: "700" }}>
               View: {queueMode === "active" ? "Active (Pending/Upcoming)" : "All"}
             </Text>
           )}
