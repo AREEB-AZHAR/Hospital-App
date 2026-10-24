@@ -1,7 +1,8 @@
 // src/components/common/SoftButton.js
 import React from "react";
 import { Pressable, Text, StyleSheet, View, ActivityIndicator } from "react-native";
-import { colors, radii, shadows } from "../../theme";
+import { useTheme } from "../../context/ThemeContext";
+import { radii } from "../../theme";
 
 export default function SoftButton({
   text,
@@ -14,6 +15,8 @@ export default function SoftButton({
   full = true,
   style,
 }) {
+  const { colors, shadows, isDark } = useTheme();
+
   return (
     <Pressable
       onPress={disabled || loading ? undefined : onPress}
@@ -28,10 +31,14 @@ export default function SoftButton({
         styles.button,
         full && styles.full,
         primary
-          ? styles.primaryBtn
+          ? { backgroundColor: colors.primary, borderColor: colors.primaryDark }
           : danger
-          ? styles.dangerBtn
-          : styles.defaultBtn,
+          ? {
+              backgroundColor: isDark ? "rgba(239, 68, 68, 0.15)" : colors.dangerLight,
+              borderColor: isDark ? "rgba(239, 68, 68, 0.3)" : "#FECACA",
+            }
+          : { backgroundColor: colors.surface, borderColor: colors.surfaceBorder },
+        shadows.subtle,
         pressed && styles.pressed,
         disabled && styles.disabled,
         style,
@@ -48,11 +55,13 @@ export default function SoftButton({
           <Text
             style={[
               styles.text,
-              primary
-                ? styles.primaryText
-                : danger
-                ? styles.dangerText
-                : styles.defaultText,
+              {
+                color: primary
+                  ? colors.white
+                  : danger
+                  ? colors.danger
+                  : colors.textPrimary,
+              },
             ]}
           >
             {text}
@@ -73,22 +82,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "transparent",
-    ...shadows.subtle,
   },
   full: {
     flex: 1,
-  },
-  defaultBtn: {
-    backgroundColor: colors.surface,
-    borderColor: colors.surfaceBorder,
-  },
-  primaryBtn: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primaryDark,
-  },
-  dangerBtn: {
-    backgroundColor: colors.dangerLight,
-    borderColor: "#FECACA",
   },
   pressed: {
     transform: [{ scale: 0.98 }],
@@ -109,13 +105,5 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     fontSize: 14,
   },
-  defaultText: {
-    color: colors.textPrimary,
-  },
-  primaryText: {
-    color: colors.white,
-  },
-  dangerText: {
-    color: colors.danger,
-  },
 });
+

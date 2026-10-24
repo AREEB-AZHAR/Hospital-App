@@ -1,9 +1,12 @@
 // src/components/common/TabChip.js
 import React from "react";
 import { Pressable, Text, StyleSheet, View } from "react-native";
-import { colors, radii, shadows } from "../../theme";
+import { useTheme } from "../../context/ThemeContext";
+import { radii } from "../../theme";
 
 export default function TabChip({ label, active, onPress, icon }) {
+  const { colors, shadows } = useTheme();
+
   return (
     <Pressable
       onPress={onPress}
@@ -12,13 +15,15 @@ export default function TabChip({ label, active, onPress, icon }) {
       }}
       style={({ pressed }) => [
         styles.chip,
-        active ? styles.activeChip : styles.inactiveChip,
+        active
+          ? { backgroundColor: colors.primary, borderColor: colors.primaryDark, ...shadows.subtle }
+          : { backgroundColor: colors.surface, borderColor: colors.surfaceBorder },
         pressed && styles.pressed,
       ]}
     >
       <View style={styles.row}>
         {icon ? <View style={styles.iconWrap}>{icon}</View> : null}
-        <Text style={[styles.text, active ? styles.activeText : styles.inactiveText]}>
+        <Text style={[styles.text, { color: active ? colors.white : colors.textPrimary }]}>
           {label}
         </Text>
       </View>
@@ -36,15 +41,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  activeChip: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primaryDark,
-    ...shadows.subtle,
-  },
-  inactiveChip: {
-    backgroundColor: colors.surfaceGlass,
-    borderColor: colors.surfaceBorder,
-  },
   pressed: {
     transform: [{ scale: 0.97 }],
     opacity: 0.9,
@@ -60,10 +56,5 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     fontSize: 13,
   },
-  activeText: {
-    color: colors.white,
-  },
-  inactiveText: {
-    color: colors.textSecondary,
-  },
 });
+

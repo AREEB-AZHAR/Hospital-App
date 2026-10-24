@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
 import RootNavigator from "./src/navigation/RootNavigator";
+import { ThemeProvider } from "./src/context/ThemeContext";
 import { AuthProvider } from "./src/context/AuthContext";
 import { AppDataProvider } from "./src/context/AppDataContext";
 
@@ -104,11 +105,13 @@ const styles = StyleSheet.create({
 export default function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <AppDataProvider>
-          <RootNavigator />
-        </AppDataProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppDataProvider>
+            <RootNavigator />
+          </AppDataProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

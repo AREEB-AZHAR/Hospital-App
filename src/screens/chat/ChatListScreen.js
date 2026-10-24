@@ -10,7 +10,8 @@ import {
   RefreshControl,
 } from "react-native";
 import { chatApi } from "../../services/api";
-import { colors, radii, shadows } from "../../theme";
+import { useTheme } from "../../context/ThemeContext";
+import { radii, shadows } from "../../theme";
 import { SearchIcon, ChatBubbleIcon } from "../../components/icons";
 
 function formatTime(isoStr) {
@@ -34,6 +35,7 @@ function initials(name = "") {
 }
 
 export default function ChatListScreen({ navigation }) {
+  const { colors, isDark } = useTheme();
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -73,16 +75,27 @@ export default function ChatListScreen({ navigation }) {
   }, [query, chats]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Search */}
-      <View style={[styles.searchWrap, { flexDirection: "row", alignItems: "center", paddingHorizontal: 12 }]}>
+      <View
+        style={[
+          styles.searchWrap,
+          {
+            flexDirection: "row",
+            alignItems: "center",
+            paddingHorizontal: 12,
+            backgroundColor: colors.surface,
+            borderColor: colors.surfaceBorder,
+          },
+        ]}
+      >
         <SearchIcon size={18} color={colors.textMuted} strokeWidth={2} />
         <TextInput
           value={query}
           onChangeText={setQuery}
           placeholder="Search chats…"
-          placeholderTextColor={colors.textLight}
-          style={[styles.search, { flex: 1, marginLeft: 8, borderWidth: 0, paddingHorizontal: 0 }]}
+          placeholderTextColor={colors.textMuted}
+          style={[styles.search, { flex: 1, marginLeft: 8, borderWidth: 0, paddingHorizontal: 0, color: colors.textPrimary }]}
           autoCapitalize="none"
           autoCorrect={false}
           clearButtonMode="while-editing"
@@ -99,15 +112,20 @@ export default function ChatListScreen({ navigation }) {
           data={filtered}
           keyExtractor={(item) => item.id || item._id}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
           }
           contentContainerStyle={filtered.length === 0 ? { flex: 1, paddingBottom: 120 } : { paddingBottom: 120 }}
-          ItemSeparatorComponent={() => <View style={styles.sep} />}
+          ItemSeparatorComponent={() => <View style={[styles.sep, { backgroundColor: colors.surfaceBorder }]} />}
           ListEmptyComponent={
             <View style={styles.empty}>
               <ChatBubbleIcon size={40} color={colors.primary} strokeWidth={1.8} />
-              <Text style={styles.emptyTitle}>No Chats Found</Text>
-              <Text style={styles.emptySub}>No active medical conversations yet.</Text>
+              <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>No Chats Found</Text>
+              <Text style={[styles.emptySub, { color: colors.textMuted }]}>No active medical conversations yet.</Text>
             </View>
           }
           renderItem={({ item }) => {
@@ -126,28 +144,55 @@ export default function ChatListScreen({ navigation }) {
               >
                 {/* Avatar */}
                 <View style={styles.avatarWrap}>
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{initials(item.name)}</Text>
+                  <View
+                    style={[
+                      styles.avatar,
+                      {
+                        backgroundColor: isDark
+                          ? "rgba(59, 130, 246, 0.2)"
+                          : "rgba(13, 110, 253, 0.1)",
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.avatarText,
+                        { color: isDark ? colors.primary : "#163b8f" },
+                      ]}
+                    >
+                      {initials(item.name)}
+                    </Text>
                   </View>
-                  {item.online ? <View style={styles.onlineDot} /> : null}
+                  {item.online ? (
+                    <View
+                      style={[
+                        styles.onlineDot,
+                        { borderColor: colors.background },
+                      ]}
+                    />
+                  ) : null}
                 </View>
 
                 {/* Text */}
                 <View style={{ flex: 1 }}>
                   <View style={styles.topLine}>
-                    <Text style={styles.name} numberOfLines={1}>
+                    <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
                       {item.name}
                     </Text>
-                    {timeText ? <Text style={styles.time}>{timeText}</Text> : null}
+                    {timeText ? (
+                      <Text style={[styles.time, { color: colors.textMuted }]}>
+                        {timeText}
+                      </Text>
+                    ) : null}
                   </View>
 
                   <View style={styles.bottomLine}>
-                    <Text style={styles.last} numberOfLines={1}>
+                    <Text style={[styles.last, { color: colors.textSecondary }]} numberOfLines={1}>
                       {lastText}
                     </Text>
 
                     {item.unread > 0 ? (
-                      <View style={styles.unreadBadge}>
+                      <View style={[styles.unreadBadge, { backgroundColor: colors.primary }]}>
                         <Text style={styles.unreadText}>
                           {item.unread > 9 ? "9+" : String(item.unread)}
                         </Text>

@@ -1,16 +1,16 @@
-import React, { useContext } from "react";
-import { View, ActivityIndicator, StyleSheet } from "react-native";
+import React, { useContext, useMemo } from "react";
+import { View, ActivityIndicator, StyleSheet, StatusBar } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { AuthContext } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import AuthStack from "./AuthStack";
 import AppTabs from "./AppTabs";
 import DoctorDetailScreen from "../screens/tabs/DoctorDetailScreen";
 import PatientProfileScreen from "../screens/role/PatientProfileScreen";
 import BookAppointmentScreen from "../screens/tabs/BookAppointmentScreen";
 import DepartmentsScreen from "../screens/tabs/DepartmentsScreen";
-import { colors } from "../theme";
 
 const Stack = createNativeStackNavigator();
 
@@ -44,19 +44,41 @@ function AppStack() {
 
 export default function RootNavigator() {
   const { user, booting } = useContext(AuthContext);
+  const { isDark, colors } = useTheme();
+
+  const navTheme = useMemo(
+    () => ({
+      dark: isDark,
+      colors: {
+        primary: colors.primary,
+        background: colors.background,
+        card: colors.surface,
+        text: colors.textPrimary,
+        border: colors.surfaceBorder,
+        notification: colors.accent,
+      },
+    }),
+    [isDark, colors]
+  );
 
   if (booting) {
     return (
-      <View style={styles.bootingContainer}>
+      <View style={[styles.bootingContainer, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <NavigationContainer>
-      {user ? <AppStack /> : <AuthStack />}
-    </NavigationContainer>
+    <>
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
+      />
+      <NavigationContainer theme={navTheme}>
+        {user ? <AppStack /> : <AuthStack />}
+      </NavigationContainer>
+    </>
   );
 }
 

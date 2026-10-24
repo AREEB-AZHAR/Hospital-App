@@ -4,7 +4,8 @@ import { Platform, StyleSheet } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthContext } from "../context/AuthContext";
-import { colors, radii, shadows } from "../theme";
+import { useTheme } from "../context/ThemeContext";
+import { radii } from "../theme";
 import {
   HomeIcon,
   StethoscopeIcon,
@@ -80,6 +81,7 @@ function getTabIcon(tabName, focused, color) {
 
 export default function AppTabs() {
   const { user } = useContext(AuthContext);
+  const { colors, shadows, isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
   const safeBottom = Math.max(insets.bottom, Platform.OS === "ios" ? 20 : 10);
@@ -95,7 +97,19 @@ export default function AppTabs() {
       paddingBottom: safeBottom,
       ...shadows.subtle,
     }),
-    [tabHeight, safeBottom]
+    [colors.surface, colors.surfaceBorder, tabHeight, safeBottom, shadows.subtle]
+  );
+
+  const headerStyle = useMemo(
+    () => ({
+      backgroundColor: colors.surface,
+      elevation: 0,
+      shadowOpacity: 0,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.surfaceBorder,
+      height: Platform.OS === "android" ? 56 : 48,
+    }),
+    [colors.surface, colors.surfaceBorder]
   );
 
   const role = String(user?.role || "patient").trim().toLowerCase();
@@ -155,8 +169,12 @@ export default function AppTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: true,
-        headerStyle: styles.header,
-        headerTitleStyle: styles.headerTitle,
+        headerStyle,
+        headerTitleStyle: {
+          fontSize: 17,
+          fontWeight: "800",
+          color: colors.textPrimary,
+        },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: dynamicTabBarStyle,
@@ -189,28 +207,6 @@ export default function AppTabs() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    backgroundColor: colors.surface,
-    elevation: 0,
-    shadowOpacity: 0,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.surfaceBorder,
-    height: Platform.OS === "android" ? 56 : 48,
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: "800",
-    color: colors.textPrimary,
-  },
-  tabBar: {
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.surfaceBorder,
-    height: Platform.OS === "ios" ? 84 : 64,
-    paddingTop: 8,
-    paddingBottom: Platform.OS === "ios" ? 24 : 10,
-    ...shadows.subtle,
-  },
   tabBarLabel: {
     fontSize: 11,
     fontWeight: "700",
