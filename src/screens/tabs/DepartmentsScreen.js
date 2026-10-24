@@ -2,32 +2,39 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, TextInput, Pressable, FlatList, StyleSheet } from "react-native";
 import { dummyDepartments } from "../../data/dummyDepartments";
+import { useTheme } from "../../context/ThemeContext";
 import { colors, radii, shadows } from "../../theme";
 import { HospitalBuildingIcon, ChevronRightIcon, SearchIcon } from "../../components/icons";
 
 function DeptCard({ name, desc, onPress }) {
+  const { colors, shadows } = useTheme();
   return (
     <Pressable
       onPress={onPress}
-      android_ripple={{ color: "rgba(13, 110, 253, 0.08)" }}
+      android_ripple={{ color: colors.primaryLight }}
       style={({ pressed }) => [
         styles.deptCard,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.surfaceBorder,
+          ...shadows.subtle,
+        },
         pressed && styles.cardPressed,
       ]}
     >
       <View style={styles.cardHeader}>
-        <View style={styles.iconWrap}>
+        <View style={[styles.iconWrap, { backgroundColor: colors.primaryLight }]}>
           <HospitalBuildingIcon size={22} color={colors.primary} strokeWidth={2} />
         </View>
 
         <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={styles.deptName}>{name}</Text>
-          <Text style={styles.deptDesc}>{desc}</Text>
+          <Text style={[styles.deptName, { color: colors.textPrimary }]}>{name}</Text>
+          <Text style={[styles.deptDesc, { color: colors.textSecondary }]}>{desc}</Text>
         </View>
       </View>
 
-      <View style={styles.cardFooter}>
-        <Text style={styles.viewDocText}>View specialist doctors</Text>
+      <View style={[styles.cardFooter, { borderTopColor: colors.surfaceBorder }]}>
+        <Text style={[styles.viewDocText, { color: colors.primary }]}>View specialist doctors</Text>
         <ChevronRightIcon size={16} color={colors.primary} />
       </View>
     </Pressable>
@@ -35,6 +42,7 @@ function DeptCard({ name, desc, onPress }) {
 }
 
 export default function DepartmentsScreen({ navigation }) {
+  const { colors, isDark, shadows } = useTheme();
   const [q, setQ] = useState("");
 
   const data = useMemo(() => {
@@ -44,18 +52,27 @@ export default function DepartmentsScreen({ navigation }) {
   }, [q]);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Clinical Departments</Text>
-      <Text style={styles.subtitle}>Select a department to browse available doctors</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.textPrimary }]}>Clinical Departments</Text>
+      <Text style={[styles.subtitle, { color: colors.textMuted }]}>Select a department to browse available doctors</Text>
 
-      <View style={styles.searchBar}>
+      <View
+        style={[
+          styles.searchBar,
+          {
+            backgroundColor: colors.surface,
+            borderColor: colors.surfaceBorder,
+            ...shadows.subtle,
+          },
+        ]}
+      >
         <SearchIcon size={18} color={colors.textMuted} strokeWidth={2} />
         <TextInput
           value={q}
           onChangeText={setQ}
           placeholder="Search clinical departments…"
-          placeholderTextColor={colors.textLight}
-          style={styles.searchInput}
+          placeholderTextColor={colors.textMuted}
+          style={[styles.searchInput, { color: colors.textPrimary }]}
         />
         {q ? (
           <Pressable onPress={() => setQ("")}>

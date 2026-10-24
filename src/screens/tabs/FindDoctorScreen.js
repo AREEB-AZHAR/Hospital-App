@@ -11,7 +11,8 @@ import {
   StatusBar,
 } from "react-native";
 import { api } from "../../services/api";
-import { colors, radii, shadows } from "../../theme";
+import { useTheme } from "../../context/ThemeContext";
+import { radii } from "../../theme";
 import {
   SearchIcon,
   StethoscopeIcon,
@@ -24,65 +25,87 @@ import {
 } from "../../components/icons";
 
 function DoctorCard({ doc, onBook, onDetail }) {
+  const { colors, isDark, shadows } = useTheme();
   return (
     <Pressable
       onPress={onDetail}
-      android_ripple={{ color: "rgba(13, 110, 253, 0.08)" }}
+      android_ripple={{ color: isDark ? "rgba(59, 130, 246, 0.15)" : "rgba(13, 110, 253, 0.08)" }}
       style={({ pressed }) => [
         styles.docCard,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.surfaceBorder,
+          ...shadows.card,
+        },
         pressed && styles.cardPressed,
       ]}
     >
       <View style={styles.cardHeader}>
-        <View style={styles.avatarWrap}>
-          <Text style={styles.avatarText}>
+        <View
+          style={[
+            styles.avatarWrap,
+            {
+              backgroundColor: isDark ? "rgba(59, 130, 246, 0.2)" : colors.primaryLight,
+              borderColor: isDark ? "rgba(59, 130, 246, 0.3)" : "#BFDBFE",
+            },
+          ]}
+        >
+          <Text style={[styles.avatarText, { color: colors.primary }]}>
             {(doc.name || "D")[0].toUpperCase()}
           </Text>
         </View>
 
         <View style={styles.headerInfo}>
           <View style={styles.nameRow}>
-            <Text style={styles.docName}>{doc.name}</Text>
+            <Text style={[styles.docName, { color: colors.textPrimary }]}>{doc.name}</Text>
             <View style={{ marginLeft: 6 }}>
               <ShieldCheckIcon size={16} color={colors.accent} />
             </View>
           </View>
-          <Text style={styles.docDept}>{doc.department}</Text>
+          <Text style={[styles.docDept, { color: colors.textMuted }]}>{doc.department}</Text>
         </View>
 
-        <View style={styles.ratingBadge}>
+        <View
+          style={[
+            styles.ratingBadge,
+            {
+              backgroundColor: isDark ? "rgba(245, 158, 11, 0.15)" : colors.warningLight,
+              borderColor: isDark ? "rgba(245, 158, 11, 0.3)" : "#FDE68A",
+            },
+          ]}
+        >
           <StarFilledIcon size={12} color={colors.warning} />
-          <Text style={styles.ratingText}>{doc.rating || 4.8}</Text>
+          <Text style={[styles.ratingText, { color: colors.textPrimary }]}>{doc.rating || 4.8}</Text>
         </View>
       </View>
 
       {/* Metrics Row */}
-      <View style={styles.metricsRow}>
+      <View style={[styles.metricsRow, { backgroundColor: colors.surfaceSubtle }]}>
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>EXPERIENCE</Text>
-          <Text style={styles.metricValue}>{doc.experience || 5} yrs</Text>
+          <Text style={[styles.metricLabel, { color: colors.textMuted }]}>EXPERIENCE</Text>
+          <Text style={[styles.metricValue, { color: colors.textPrimary }]}>{doc.experience || 5} yrs</Text>
         </View>
 
-        <View style={styles.metricDivider} />
+        <View style={[styles.metricDivider, { backgroundColor: colors.surfaceBorder }]} />
 
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>CONSULT FEE</Text>
-          <Text style={styles.metricValue}>Rs {doc.fee || 1500}</Text>
+          <Text style={[styles.metricLabel, { color: colors.textMuted }]}>CONSULT FEE</Text>
+          <Text style={[styles.metricValue, { color: colors.textPrimary }]}>Rs {doc.fee || 1500}</Text>
         </View>
 
-        <View style={styles.metricDivider} />
+        <View style={[styles.metricDivider, { backgroundColor: colors.surfaceBorder }]} />
 
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>PATIENTS</Text>
-          <Text style={styles.metricValue}>500+</Text>
+          <Text style={[styles.metricLabel, { color: colors.textMuted }]}>PATIENTS</Text>
+          <Text style={[styles.metricValue, { color: colors.textPrimary }]}>500+</Text>
         </View>
       </View>
 
       {/* Availability & Book Row */}
-      <View style={styles.footerRow}>
+      <View style={[styles.footerRow, { borderTopColor: colors.surfaceBorder }]}>
         <View style={styles.availRow}>
           <ClockIcon size={14} color={colors.textMuted} strokeWidth={2} />
-          <Text style={styles.availText}>{doc.availability}</Text>
+          <Text style={[styles.availText, { color: colors.textSecondary }]}>{doc.availability}</Text>
         </View>
 
         <Pressable
@@ -90,6 +113,7 @@ function DoctorCard({ doc, onBook, onDetail }) {
           android_ripple={{ color: "rgba(255, 255, 255, 0.2)" }}
           style={({ pressed }) => [
             styles.bookBtn,
+            { backgroundColor: colors.primary },
             pressed && { opacity: 0.85 },
           ]}
         >
@@ -102,6 +126,7 @@ function DoctorCard({ doc, onBook, onDetail }) {
 }
 
 export default function FindDoctorScreen({ navigation, route }) {
+  const { colors, isDark, shadows } = useTheme();
   const selectedDept = route?.params?.department || "";
   const [q, setQ] = useState("");
   const [dept, setDept] = useState(selectedDept);
@@ -159,30 +184,46 @@ export default function FindDoctorScreen({ navigation, route }) {
       style={styles.bgContainer}
       resizeMode="cover"
     >
-      <StatusBar barStyle="light-content" translucent />
-      <View style={styles.overlay}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+      <View style={[styles.overlay, { backgroundColor: isDark ? "rgba(11, 15, 25, 0.92)" : "rgba(15, 23, 42, 0.45)" }]}>
         {/* Search header */}
-        <View style={styles.searchWrap}>
+        <View
+          style={[
+            styles.searchWrap,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.surfaceBorder,
+              ...shadows.subtle,
+            },
+          ]}
+        >
           <SearchIcon size={18} color={colors.textMuted} strokeWidth={2} />
           <TextInput
             value={q}
             onChangeText={setQ}
             placeholder="Search by doctor or specialty…"
-            placeholderTextColor={colors.textLight}
-            style={styles.searchInput}
+            placeholderTextColor={colors.textMuted}
+            style={[styles.searchInput, { color: colors.textPrimary }]}
           />
           {q ? (
             <Pressable onPress={() => setQ("")}>
-              <Text style={styles.clearBtnText}>✕</Text>
+              <Text style={[styles.clearBtnText, { color: colors.textMuted }]}>✕</Text>
             </Pressable>
           ) : null}
         </View>
 
         {dept ? (
-          <View style={styles.activeFilterRow}>
-            <Text style={styles.filterText}>Filtering: {dept}</Text>
+          <View
+            style={[
+              styles.activeFilterRow,
+              {
+                backgroundColor: isDark ? "rgba(59, 130, 246, 0.2)" : colors.primaryLight,
+              },
+            ]}
+          >
+            <Text style={[styles.filterText, { color: colors.primary }]}>Filtering: {dept}</Text>
             <Pressable onPress={() => setDept("")}>
-              <Text style={styles.clearFilterText}>Clear</Text>
+              <Text style={[styles.clearFilterText, { color: colors.danger }]}>Clear</Text>
             </Pressable>
           </View>
         ) : null}
@@ -194,10 +235,10 @@ export default function FindDoctorScreen({ navigation, route }) {
           keyExtractor={(item) => String(item.id || item._id)}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
           ListEmptyComponent={
-            <View style={styles.emptyBox}>
+            <View style={[styles.emptyBox, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder, ...shadows.subtle }]}>
               <StethoscopeIcon size={36} color={colors.primary} />
-              <Text style={styles.emptyTitle}>No Doctors Found</Text>
-              <Text style={styles.emptySub}>
+              <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>No Doctors Found</Text>
+              <Text style={[styles.emptySub, { color: colors.textMuted }]}>
                 Try adjusting your search criteria or clear the department filter.
               </Text>
             </View>
