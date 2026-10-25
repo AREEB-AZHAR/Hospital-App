@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { api } from "../../services/api";
 import { useTheme } from "../../context/ThemeContext";
-import { radii } from "../../theme";
+import { colors, radii, shadows } from "../../theme";
 import {
   SearchIcon,
   StethoscopeIcon,
