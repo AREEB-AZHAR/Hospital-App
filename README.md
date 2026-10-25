@@ -47,7 +47,7 @@ The mobile platform now features a **persistent Dark Mode theme system** and a *
 
 - ⚡ **Module Boot & React Navigation 7 Theme Fix (`RootNavigator.js` & `MyAppointmentScreen.js`)**:
   - Resolved `TypeError: Cannot read property 'regular' of undefined` by inheriting and spreading `DefaultTheme` / `DarkTheme` fonts required by React Navigation 7 stack navigators.
-  - Fixed `ReferenceError: Property 'shadows' doesn't exist` in `MyAppointmentScreen.js` by destructuring `shadows` from `useTheme()`.
+  - Fixed `ReferenceError: Property 'shadows' doesn't exist` in `MyAppointmentScreen.js` and `ReferenceError: Property 'colors' doesn't exist` in `FindDoctorScreen.js`.
   - Ran comprehensive AST global scope validation across all JavaScript files in `src/` to confirm zero undeclared identifiers.
 
 - 🌓 **Comprehensive Full-Screen Theme Reactivity (`HomeScreen.js`, `FindDoctorScreen.js`, `DepartmentsScreen.js`, `BookAppointmentScreen.js`)**:
