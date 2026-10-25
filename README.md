@@ -50,8 +50,10 @@ The mobile platform now features a **persistent Dark Mode theme system** and a *
   - Fixed `ReferenceError: Property 'shadows' doesn't exist` in `MyAppointmentScreen.js` and `ReferenceError: Property 'colors' doesn't exist` in `FindDoctorScreen.js`.
   - Ran comprehensive AST global scope validation across all JavaScript files in `src/` to confirm zero undeclared identifiers.
 
-- 🌓 **Comprehensive Full-Screen Theme Reactivity (`HomeScreen.js`, `FindDoctorScreen.js`, `DepartmentsScreen.js`, `BookAppointmentScreen.js`)**:
+- 🌓 **Comprehensive Full-Screen Theme Reactivity (`HomeScreen.js`, `FindDoctorScreen.js`, `DepartmentsScreen.js`, `BookAppointmentScreen.js`, `SignupDetailsScreen.js`, `ForgotPasswordScreen.js`)**:
   - **Dynamic Card & Tile Theming**: Converted all static theme references to dynamic context hook (`useTheme()`). All doctor cards, quick nav chips, search inputs, dropdown menus, appointment hero boxes, consultation rows, department banners, and health tip advisories re-render instantly on theme change without requiring an app reload.
+  - **Modern Patient Registration (`SignupDetailsScreen.js`)**: Completely revamped the "Create Account" screen with high-contrast glassmorphism card, medical branding, custom back navigation (`ChevronLeftIcon`), themed input fields, error banners, and full keyboard-aware scrolling. Fixed the black-on-black illegibility issue on dark mode devices.
+  - **Themed Password Recovery (`ForgotPasswordScreen.js`)**: Replaced hardcoded slate/white backgrounds with reactive theme surfaces and borders for zero eye-strain password recovery.
   - **1-Tap Header Theme Toggle**: Embedded a responsive, ergonomic `MoonIcon` / `SunIcon` toggle right on the `HomeScreen.js` header alongside the logout button, providing immediate one-touch switching between clinical light mode and obsidian dark mode.
   - **Adaptive Contrast & Elevation**: Elevated cards use `#131B2E` with subtle dark borders (`#1E293B`) and glow-adjusted shadows (`darkShadows`) to guarantee high contrast and zero eye fatigue during evening teleconsultations.
 
